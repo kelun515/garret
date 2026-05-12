@@ -843,12 +843,28 @@
         ];
 
         let votes = {};
+        let localSelectedVotes = {};
+        let remoteCounts = {};
+        let remoteAvailable = false;
         let isAdmin = false;
+
+        const LOCAL_VOTE_KEY = 'noballs_votes';
+        const LOCAL_SELECTED_KEY = 'noballs_selected';
+        const LOCAL_QUESTIONS_KEY = 'noballs_questions';
+        const COUNTAPI_BASE = 'https://api.countapi.xyz';
+        const REMOTE_NAMESPACE = 'kudafintsi_poll';
 
         // Initialize
         function init() {
             loadData();
             renderQuestions();
+            loadRemoteCounts().then(() => {
+                if (remoteAvailable) {
+                    renderQuestions();
+                    updateAdminStats();
+                    renderAdminLeaderboard();
+                }
+            });
         }
 
         // Local Storage
@@ -863,15 +879,26 @@
             return emptyVotes;
         }
 
+        function createEmptySelectedVotes() {
+            const selected = {};
+            questions.forEach(q => {
+                selected[q.id] = null;
+            });
+            return selected;
+        }
+
         function loadData() {
-            const savedVotes = localStorage.getItem('noballs_votes');
-            const savedQuestions = localStorage.getItem('noballs_questions');
+            const savedVotes = localStorage.getItem(LOCAL_VOTE_KEY);
+            const savedSelected = localStorage.getItem(LOCAL_SELECTED_KEY);
+            const savedQuestions = localStorage.getItem(LOCAL_QUESTIONS_KEY);
 
             if (savedQuestions) {
                 questions = JSON.parse(savedQuestions);
             }
 
             votes = createEmptyVotes();
+            localSelectedVotes = createEmptySelectedVotes();
+            remoteCounts = createEmptyVotes();
 
             if (savedVotes) {
                 try {
@@ -881,6 +908,9 @@
                         Object.keys(parsedVotes[qid]).forEach(fid => {
                             if (votes[qid][fid] !== undefined) {
                                 votes[qid][fid] = Number(parsedVotes[qid][fid]) || 0;
+                                if (votes[qid][fid] > 0) {
+                                    localSelectedVotes[qid] = Number(fid);
+                                }
                             }
                         });
                     });
@@ -888,11 +918,25 @@
                     console.warn('Invalid saved votes, resetting to zero.', error);
                 }
             }
+
+            if (savedSelected) {
+                try {
+                    const parsedSelected = JSON.parse(savedSelected);
+                    Object.keys(parsedSelected).forEach(qid => {
+                        if (localSelectedVotes[qid] !== undefined) {
+                            localSelectedVotes[qid] = Number(parsedSelected[qid]);
+                        }
+                    });
+                } catch (error) {
+                    console.warn('Invalid selected vote state.', error);
+                }
+            }
         }
 
         function saveData() {
-            localStorage.setItem('noballs_votes', JSON.stringify(votes));
-            localStorage.setItem('noballs_questions', JSON.stringify(questions));
+            localStorage.setItem(LOCAL_VOTE_KEY, JSON.stringify(votes));
+            localStorage.setItem(LOCAL_SELECTED_KEY, JSON.stringify(localSelectedVotes));
+            localStorage.setItem(LOCAL_QUESTIONS_KEY, JSON.stringify(questions));
         }
 
         // Navigation
@@ -929,6 +973,7 @@
         }
 
         function createQuestionCard(question, index) {
+            const selectedFriendId = localSelectedVotes[question.id];
             const card = document.createElement('div');
             card.className = 'question-card';
             card.innerHTML = `
@@ -939,12 +984,10 @@
                 </div>
                 <div class="friends-grid" id="friends-${question.id}">
                     ${friends.map(friend => `
-                        <div class="friend-card" onclick="vote(${question.id}, ${friend.id}, event)">
+                        <div class="friend-card ${selectedFriendId === friend.id ? 'voted' : ''}" onclick="vote(${question.id}, ${friend.id}, event)">
                             <div class="friend-avatar">${memberAvatarHtml(friend)}</div>
                             <div class="friend-name">${friend.name}</div>
-                            ${votes[question.id] && votes[question.id][friend.id] > 0 ? `
-                                <div class="vote-badge">${calculatePercentage(question.id, friend.id)}%</div>
-                            ` : ''}
+                            ${getVoteBadgeHtml(question.id, friend.id)}
                         </div>
                     `).join('')}
                 </div>
@@ -952,46 +995,59 @@
             return card;
         }
 
-        // Voting
-        function vote(questionId, friendId, event) {
-            const emojis = ['🔥', '💯', '😂', '🎯', '', ''];
-            const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
-            createEmojiReaction(event.clientX, event.clientY, randomEmoji);
-
-            if (!votes[questionId]) {
-                votes[questionId] = {};
+        async function loadRemoteCounts() {
+            const tasks = [];
+            questions.forEach(q => {
+                remoteCounts[q.id] = {};
                 friends.forEach(f => {
-                    votes[questionId][f.id] = 0;
+                    remoteCounts[q.id][f.id] = 0;
+                    tasks.push(loadRemoteCount(q.id, f.id));
                 });
-            }
-
-            Object.keys(votes[questionId]).forEach(fid => {
-                if (votes[questionId][fid] > 0) {
-                    votes[questionId][fid]--;
-                }
             });
 
-            votes[questionId][friendId] = (votes[questionId][friendId] || 0) + 1;
-            saveData();
-
-            updateVoteUI(questionId);
+            const results = await Promise.allSettled(tasks);
+            const successful = results.filter(r => r.status === 'fulfilled').length;
+            remoteAvailable = successful > 0;
         }
 
-        function createEmojiReaction(x, y, emoji) {
-            const el = document.createElement('div');
-            el.className = 'emoji-reaction';
-            el.textContent = emoji;
-            el.style.left = x + 'px';
-            el.style.top = y + 'px';
-            document.body.appendChild(el);
-            
-            setTimeout(() => el.remove(), 1000);
+        async function loadRemoteCount(questionId, friendId) {
+            const key = `q${questionId}f${friendId}`;
+            const url = `${COUNTAPI_BASE}/get/${REMOTE_NAMESPACE}/${key}`;
+            const response = await fetch(url, { method: 'GET', mode: 'cors' });
+            if (!response.ok) throw new Error('Remote fetch failed');
+            const data = await response.json();
+            remoteCounts[questionId][friendId] = Number(data.value || 0);
+        }
+
+        function getVoteCount(questionId, friendId) {
+            const source = remoteAvailable ? remoteCounts : votes;
+            return (source[questionId] && source[questionId][friendId]) ? Number(source[questionId][friendId]) : 0;
+        }
+
+        function getQuestionTotal(questionId) {
+            const source = remoteAvailable ? remoteCounts : votes;
+            return Object.values(source[questionId] || {}).reduce((sum, value) => sum + Number(value || 0), 0);
         }
 
         function calculatePercentage(questionId, friendId) {
-            const total = Object.values(votes[questionId] || {}).reduce((a, b) => a + b, 0);
+            const total = getQuestionTotal(questionId);
             if (total === 0) return 0;
-            return Math.round((votes[questionId][friendId] / total) * 100);
+            return Math.round((getVoteCount(questionId, friendId) / total) * 100);
+        }
+
+        function getVoteBadgeHtml(questionId, friendId) {
+            const count = getVoteCount(questionId, friendId);
+            if (!count) return '';
+
+            if (remoteAvailable) {
+                return `<div class="vote-badge">${count}</div>`;
+            }
+
+            return `<div class="vote-badge">${calculatePercentage(questionId, friendId)}%</div>`;
+        }
+
+        function updateAllVoteUI() {
+            questions.forEach(q => updateVoteUI(q.id));
         }
 
         function updateVoteUI(questionId) {
@@ -1001,23 +1057,99 @@
             const cards = container.querySelectorAll('.friend-card');
             cards.forEach((card, index) => {
                 const friend = friends[index];
+                const count = getVoteCount(questionId, friend.id);
                 const percentage = calculatePercentage(questionId, friend.id);
-                
                 let badgeEl = card.querySelector('.vote-badge');
                 if (badgeEl) badgeEl.remove();
 
-                if (percentage > 0) {
+                if (count > 0) {
                     const div = document.createElement('div');
                     div.className = 'vote-badge';
-                    div.textContent = percentage + '%';
+                    div.textContent = remoteAvailable ? count : `${percentage}%`;
                     card.appendChild(div);
                 }
 
-                card.classList.remove('voted');
-                if (votes[questionId][friend.id] > 0) {
-                    card.classList.add('voted');
-                }
+                card.classList.toggle('voted', localSelectedVotes[questionId] === friend.id);
             });
+        }
+
+        // Voting
+        function vote(questionId, friendId, event) {
+            const emojis = ['🔥', '💯', '😂', '🎯', '', ''];
+            const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
+            createEmojiReaction(event.clientX, event.clientY, randomEmoji);
+
+            const previousFriendId = localSelectedVotes[questionId];
+            if (previousFriendId === friendId) return;
+
+            localSelectedVotes[questionId] = friendId;
+            saveData();
+
+            if (remoteAvailable) {
+                (async () => {
+                    try {
+                        if (previousFriendId) {
+                            await decrementRemoteCount(questionId, previousFriendId);
+                        }
+                        await incrementRemoteCount(questionId, friendId);
+                        updateVoteUI(questionId);
+                        updateAdminStats();
+                        renderAdminLeaderboard();
+                    } catch (error) {
+                        remoteAvailable = false;
+                        console.warn('Remote voting failed, falling back to local votes.', error);
+                        applyLocalVote(questionId, previousFriendId, friendId);
+                        updateVoteUI(questionId);
+                    }
+                })();
+            } else {
+                applyLocalVote(questionId, previousFriendId, friendId);
+                updateVoteUI(questionId);
+            }
+        }
+
+        function applyLocalVote(questionId, previousFriendId, friendId) {
+            if (!votes[questionId]) {
+                votes[questionId] = {};
+                friends.forEach(f => {
+                    votes[questionId][f.id] = 0;
+                });
+            }
+
+            if (previousFriendId) {
+                votes[questionId][previousFriendId] = Math.max(0, votes[questionId][previousFriendId] - 1);
+            }
+            votes[questionId][friendId] = (votes[questionId][friendId] || 0) + 1;
+            saveData();
+        }
+
+        function createEmojiReaction(x, y, emoji) {
+            const el = document.createElement('div');
+            el.className = 'emoji-reaction';
+            el.textContent = emoji;
+            el.style.left = x + 'px';
+            el.style.top = y + 'px';
+            document.body.appendChild(el);
+
+            setTimeout(() => el.remove(), 1000);
+        }
+
+        async function incrementRemoteCount(questionId, friendId) {
+            const key = `q${questionId}f${friendId}`;
+            const url = `${COUNTAPI_BASE}/hit/${REMOTE_NAMESPACE}/${key}`;
+            const response = await fetch(url, { method: 'GET', mode: 'cors' });
+            if (!response.ok) throw new Error('Remote increment failed');
+            const data = await response.json();
+            remoteCounts[questionId][friendId] = Number(data.value || 0);
+        }
+
+        async function decrementRemoteCount(questionId, friendId) {
+            const key = `q${questionId}f${friendId}`;
+            const url = `${COUNTAPI_BASE}/dec/${REMOTE_NAMESPACE}/${key}`;
+            const response = await fetch(url, { method: 'GET', mode: 'cors' });
+            if (!response.ok) throw new Error('Remote decrement failed');
+            const data = await response.json();
+            remoteCounts[questionId][friendId] = Math.max(0, Number(data.value || 0));
         }
 
         // Admin Functions
@@ -1076,11 +1208,9 @@
                 let totalVotes = 0;
 
                 questions.forEach(q => {
-                    if (votes[q.id] && votes[q.id][friend.id]) {
-                        const qVotes = votes[q.id][friend.id];
-                        totalVotes += qVotes;
-                        score += qVotes;
-                    }
+                    const qVotes = getVoteCount(q.id, friend.id);
+                    totalVotes += qVotes;
+                    score += qVotes;
                 });
 
                 return {
@@ -1095,9 +1225,9 @@
 
         function updateAdminStats() {
             let totalVotes = 0;
-            Object.values(votes).forEach(q => {
-                Object.values(q).forEach(v => {
-                    totalVotes += v;
+            questions.forEach(q => {
+                friends.forEach(f => {
+                    totalVotes += getVoteCount(q.id, f.id);
                 });
             });
 
@@ -1114,11 +1244,11 @@
                 let topVoted = '';
                 let maxVotes = 0;
                 
-                Object.entries(votes[q.id] || {}).forEach(([fid, count]) => {
+                friends.forEach(f => {
+                    const count = getVoteCount(q.id, f.id);
                     if (count > maxVotes) {
                         maxVotes = count;
-                        const friend = friends.find(f => f.id === parseInt(fid));
-                        topVoted = friend ? friend.name : '';
+                        topVoted = f.name;
                     }
                 });
 
