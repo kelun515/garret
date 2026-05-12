@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Garret - Найзуудаа expose хий</title>
+    <meta http-equiv="Permissions-Policy" content="interest-cohort=()">
     <style>
         * {
             margin: 0;
@@ -38,7 +39,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-image: url('/images/background.jpg');
+            background-image: url('./images/background.jpg');
             background-size: cover;
             background-position: center;
             opacity: 0.1;
@@ -731,6 +732,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="bg-image"></div>
     <div class="bg-overlay"></div>
@@ -831,6 +833,9 @@
         </div>
     </div>
 
+     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
     <script>
         // Data
         /** Filenames inside the `images/` folder (same names as disk files). */
@@ -898,42 +903,41 @@
         const REMOTE_NAMESPACE = 'kudafintsi_poll';
 
         const LOCAL_CLIENT_ID_KEY = 'noballs_client_id';
-        const LOCAL_LAST_SUBMIT_KEY = 'noballs_last_db_submit';
+        const LOCAL_LAST_SUBMIT_KEY = 'noballs_last_submit';
 
-        /**
-         * GitHub Pages has no server database — point this at your own API.
-         * Supabase: create table vote_ballots (payload jsonb, created_at timestamptz default now());
-         * REST URL: https://YOUR_PROJECT.supabase.co/rest/v1/vote_ballots
-         * Use Project Settings → API → anon public key for DB_SUBMIT_KEY. Enable RLS policy for INSERT for anon if needed.
-         */
-        const DB_SUBMIT_URL = '';
-        const DB_SUBMIT_KEY = '';
+        /** Optional: POST JSON when user taps Submit (`{ payload: {...} }`). Leave URL empty to skip server submit. */
+        const SUBMIT_URL = '';
+        const SUBMIT_KEY = '';
 
         function remoteCounterKey(questionId, friendId) {
-            return `${REMOTE_NAMESPACE}_q${questionId}_f${friendId}`;
-        }
+    // Use a more unique, URL-safe key format
+    return `garret_poll_${questionId}_${friendId}_${new Date().getFullYear()}`;
+}
 
         // Initialize
         function init() {
-            loadData();
-            renderQuestions();
-            loadRemoteCounts().then(() => {
-                if (remoteAvailable) {
-                    renderQuestions();
-                    updateAdminStats();
-                    renderAdminLeaderboard();
-                }
-            });
-            document.addEventListener('visibilitychange', async () => {
-                if (document.visibilityState !== 'visible') return;
-                await loadRemoteCounts();
-                if (remoteAvailable) {
-                    updateAllVoteUI();
-                    updateAdminStats();
-                    renderAdminLeaderboard();
-                }
-            });
+    loadData();
+    
+    // 🔥 CHANGED: Use Firebase instead of countapi
+    loadFirebaseVotes().then(() => {
+        renderQuestions();
+        if (remoteAvailable) {
+            updateAdminStats();
+            renderAdminLeaderboard();
         }
+    });
+    
+    // Keep the visibilitychange listener
+    document.addEventListener('visibilitychange', async () => {
+        if (document.visibilityState !== 'visible') return;
+        await loadFirebaseVotes(); // Refresh from Firebase
+        if (remoteAvailable) {
+            updateAllVoteUI();
+            updateAdminStats();
+            renderAdminLeaderboard();
+        }
+    });
+}
 
         // Local Storage
         function createEmptyVotes() {
@@ -1048,13 +1052,13 @@
             footer.className = 'vote-submit-section';
             footer.innerHTML = `
                 <div class="vote-submit-card">
-                    <p class="vote-submit-hint">Дууссаны дараа энд дарж саналаа илгээнэ үү.</p>
-                    <button type="button" class="btn vote-submit-btn" id="submitVotesBtn">Илгээх📤</button>
+                    <p class="vote-submit-hint">Дууссаны дараа дарна уу.</p>
+                    <button type="button" class="btn vote-submit-btn" id="submitVotesBtn">Submit</button>
                     <p class="vote-submit-status" id="submitVotesStatus" role="status"></p>
                 </div>
             `;
             feed.appendChild(footer);
-            document.getElementById('submitVotesBtn').addEventListener('click', submitVotesToDatabase);
+            document.getElementById('submitVotesBtn').addEventListener('click', submitVotes);
         }
 
         function getOrCreateClientId() {
@@ -1090,17 +1094,17 @@
             };
         }
 
-        async function submitVotesToDatabase() {
+        async function submitVotes() {
             const btn = document.getElementById('submitVotesBtn');
             const statusEl = document.getElementById('submitVotesStatus');
             if (!btn || !statusEl) return;
 
             statusEl.classList.remove('ok', 'err');
-            const url = (DB_SUBMIT_URL || '').trim();
+            const url = (SUBMIT_URL || '').trim();
 
             if (!url) {
                 statusEl.classList.add('err');
-                statusEl.textContent = 'Алдаа: DB_SUBMIT_URL хоосон байна. index2.html дотор Supabase эсвэл өөр API URL-аа бичнэ үү.';
+                statusEl.textContent = 'Илгээх тохиргоо хийгээгүй байна.';
                 return;
             }
 
@@ -1109,6 +1113,15 @@
                 const ok = confirm(`Чи ${missing.length} асуултад сонголт хийгээгүй байна. Гэсэн ч илгээх үү?`);
                 if (!ok) return;
             }
+            if (remoteAvailable) {
+    // Sync local selections to Firebase for consistency
+    questions.forEach(q => {
+        const fid = localSelectedVotes[q.id];
+        if (fid) {
+            db.ref(`votes/${q.id}_${fid}`).transaction(current => (current || 0) + 1);
+        }
+    });
+}
 
             const payload = buildVoteSubmissionPayload();
             const body = JSON.stringify({ payload });
@@ -1118,7 +1131,7 @@
 
             try {
                 const headers = { 'Content-Type': 'application/json' };
-                const key = (DB_SUBMIT_KEY || '').trim();
+                const key = (SUBMIT_KEY || '').trim();
                 if (key) {
                     headers['apikey'] = key;
                     headers['Authorization'] = `Bearer ${key}`;
@@ -1135,7 +1148,7 @@
                 statusEl.classList.add('ok');
                 statusEl.textContent = 'Амжилттай илгээгдлээ ✅';
             } catch (err) {
-                console.warn('Database submit failed', err);
+                console.warn('Submit failed', err);
                 statusEl.classList.add('err');
                 statusEl.textContent = 'Илгээхэд алдаа: ' + (err && err.message ? err.message : String(err));
             } finally {
@@ -1166,43 +1179,49 @@
             return card;
         }
 
-        async function loadRemoteCounts() {
-            const pairs = [];
-            questions.forEach(q => {
-                remoteCounts[q.id] = {};
-                friends.forEach(f => {
-                    remoteCounts[q.id][f.id] = 0;
-                    pairs.push([q.id, f.id]);
-                });
+        async function loadFirebaseVotes() {
+    try {
+        const snapshot = await db.ref('votes').once('value');
+        const data = snapshot.val() || {};
+        
+        questions.forEach(q => {
+            friends.forEach(f => {
+                const key = `${q.id}_${f.id}`;
+                remoteCounts[q.id][f.id] = Number(data[key]) || 0;
             });
-
-            const BATCH = 12;
-            let successful = 0;
-            for (let i = 0; i < pairs.length; i += BATCH) {
-                const slice = pairs.slice(i, i + BATCH);
-                const results = await Promise.allSettled(slice.map(([qid, fid]) => loadRemoteCount(qid, fid)));
-                results.forEach(r => {
-                    if (r.status === 'fulfilled') successful++;
-                });
-                if (i + BATCH < pairs.length) {
-                    await new Promise(resolve => setTimeout(resolve, 50));
-                }
-            }
-            remoteAvailable = successful > 0;
-        }
+        });
+        remoteAvailable = true;
+        console.log('✅ Firebase votes loaded');
+    } catch (error) {
+        console.warn('❌ Failed to load Firebase votes:', error);
+        remoteAvailable = false;
+    }
+}
 
         async function loadRemoteCount(questionId, friendId) {
-            const key = remoteCounterKey(questionId, friendId);
-            const url = `${COUNTAPI_BASE}/get/${encodeURIComponent(key)}`;
-            const response = await fetch(url, { method: 'GET', mode: 'cors' });
-            if (response.status === 404) {
-                remoteCounts[questionId][friendId] = 0;
-                return;
-            }
-            if (!response.ok) throw new Error('Remote fetch failed');
-            const data = await response.json();
-            remoteCounts[questionId][friendId] = Number(data.value || 0);
+    const key = encodeURIComponent(remoteCounterKey(questionId, friendId));
+    const url = `${COUNTAPI_BASE}/get/${key}`;
+    
+    try {
+        const response = await fetch(url, { 
+            method: 'GET', 
+            mode: 'cors',
+            cache: 'no-store' // Prevent cached responses
+        });
+        
+        if (response.status === 404) {
+            remoteCounts[questionId][friendId] = 0;
+            return;
         }
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        
+        const data = await response.json();
+        remoteCounts[questionId][friendId] = Number(data.value || 0);
+    } catch (error) {
+        console.warn(`Failed to load remote count for ${questionId}/${friendId}:`, error);
+        remoteCounts[questionId][friendId] = 0; // Fallback to 0
+    }
+}
 
         function getVoteCount(questionId, friendId) {
             const source = remoteAvailable ? remoteCounts : votes;
@@ -1259,38 +1278,56 @@
         }
 
         // Voting
-        function vote(questionId, friendId, event) {
-            const emojis = ['🔥', '💯', '😂', '🎯', '', ''];
-            const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
-            createEmojiReaction(event.clientX, event.clientY, randomEmoji);
+        async function vote(questionId, friendId, event) {
+    // Show emoji animation
+    const emojis = ['🔥', '💯', '😂', '🎯', '✨', '🎉'];
+    const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
+    createEmojiReaction(event.clientX, event.clientY, randomEmoji);
 
-            const previousFriendId = localSelectedVotes[questionId];
-            if (previousFriendId === friendId) return;
+    const prev = localSelectedVotes[questionId];
+    if (prev === friendId) return; // Already selected
 
-            localSelectedVotes[questionId] = friendId;
-            saveData();
+    localSelectedVotes[questionId] = friendId;
 
-            if (remoteAvailable) {
-                (async () => {
-                    try {
-                        if (previousFriendId) {
-                            await withRemoteRetry(() => decrementRemoteCount(questionId, previousFriendId));
-                        }
-                        await withRemoteRetry(() => incrementRemoteCount(questionId, friendId));
-                        updateVoteUI(questionId);
-                        updateAdminStats();
-                        renderAdminLeaderboard();
-                    } catch (error) {
-                        console.warn('Remote voting failed, falling back to local votes.', error);
-                        applyLocalVote(questionId, previousFriendId, friendId);
-                        updateVoteUI(questionId);
-                    }
-                })();
-            } else {
-                applyLocalVote(questionId, previousFriendId, friendId);
-                updateVoteUI(questionId);
-            }
+    // 🔥 Update Firebase with atomic increments
+    try {
+        const updates = {};
+        const voteKey = (qid, fid) => `${qid}_${fid}`;
+        
+        if (prev) {
+            updates[voteKey(questionId, prev)] = firebase.database.ServerValue.increment(-1);
         }
+        updates[voteKey(questionId, friendId)] = firebase.database.ServerValue.increment(1);
+        
+        await db.ref('votes').update(updates);
+    } catch (error) {
+        console.warn('Firebase update failed, using local fallback:', error);
+        applyLocalVote(questionId, prev, friendId);
+    }
+
+    // 🔥 Attach real-time listener ONCE
+    if (!firebaseListenerAttached) {
+        firebaseListenerAttached = true;
+        db.ref('votes').on('value', (snapshot) => {
+            const data = snapshot.val() || {};
+            questions.forEach(q => {
+                friends.forEach(f => {
+                    const key = `${q.id}_${f.id}`;
+                    remoteCounts[q.id][f.id] = Number(data[key]) || 0;
+                });
+            });
+            updateAllVoteUI();
+            if (isAdmin) {
+                updateAdminStats();
+                renderAdminLeaderboard();
+            }
+        });
+        console.log('🔗 Firebase real-time listener attached');
+    }
+
+    saveData(); // Keep localStorage backup
+    updateVoteUI(questionId);
+}
 
         function applyLocalVote(questionId, previousFriendId, friendId) {
             if (!votes[questionId]) {
@@ -1500,6 +1537,17 @@
             alert('✅ Асуулт нэмэгдлээ!');
         }
 
+        const firebaseConfig = {
+  apiKey: "AIzaSyBGTPmuwsIne5nFv5qcqgp3SLBFd31fLV4",
+  authDomain: "garret-9cbae.firebaseapp.com",
+  databaseURL: "https://garret-9cbae-default-rtdb.firebaseio.com",
+  projectId: "garret-9cbae",
+  storageBucket: "garret-9cbae.firebasestorage.app",
+  messagingSenderId: "405640770546",
+  appId: "1:405640770546:web:dc6046322c95fd44bdf16b",
+  measurementId: "G-P762PYMB8L"
+};
+
         function resetAllVotes() {
             if (confirm('Бүх vote-уудыг цэвэрлэх үү?')) {
                 questions.forEach(q => {
@@ -1518,5 +1566,6 @@
 
         window.onload = init;
     </script>
+   
 </body>
 </html>
