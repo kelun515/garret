@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Garret - Найзуудаа expose хий</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #1a1a1a;
+            --bg-card: #242424;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --accent: #ff3366;
+            --accent-hover: #ff1a4d;
+            --success: #00d084;
+            --border: #333333;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* Background */
+        .bg-image {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('/images/background.jpg');
+            background-size: cover;
+            background-position: center;
+            opacity: 0.1;
+            z-index: -1;
+            
+        }
+
+        .bg-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        /* Landing Page */
+        .landing {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 4.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--accent), #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+            letter-spacing: -3px;
+        }
+
+        .landing h1 {
+            font-size: 2.2rem;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        .landing p {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            margin-bottom: 50px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 16px 40px;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(255, 51, 102, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(255, 51, 102, 0.4);
+            background: var(--accent-hover);
+        }
+
+        .btn-secondary {
+            background: var(--bg-card);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-secondary:hover {
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Navigation */
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            
+            backdrop-filter: blur(20px);
+            padding: 15px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .nav-logo {
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: var(--accent);
+            cursor: pointer;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.95rem;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            color: var(--text-primary);
+            background: var(--bg-card);
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 100px 20px 40px;
+            min-height: 100vh;
+        }
+
+        /* Question Feed - Clean Swipe Design */
+        .question-feed {
+            position: relative;
+            height: calc(100vh - 180px);
+            overflow-y: auto;
+            scroll-snap-type: y mandatory;
+            scrollbar-width: none;
+            padding-bottom: 80px;
+        }
+
+        .question-feed::-webkit-scrollbar {
+            display: none;
+        }
+
+        .question-card {
+            min-height: calc(100vh - 220px);
+            background: var(--bg-card);
+            border-radius: 24px;
+            padding: 30px 25px;
+            margin-bottom: 25px;
+            scroll-snap-align: start;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border);
+            animation: slideUp 0.5s ease;
+        }
+
+        .question-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .question-emoji {
+            font-size: 4.5rem;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        .question-text {
+            font-size: 1.6rem;
+            font-weight: 700;
+            line-height: 1.4;
+            color: var(--text-primary);
+        }
+
+        .question-number {
+            display: inline-block;
+            background: var(--accent);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        /* Friends Grid - Clean Layout */
+        .friends-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .friend-card {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 20px 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            position: relative;
+        }
+
+        .friend-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--accent);
+            box-shadow: 0 8px 25px rgba(255, 51, 102, 0.2);
+        }
+
+        .friend-card.voted {
+            border-color: var(--success);
+            background: rgba(0, 208, 132, 0.1);
+        }
+
+        .friend-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), #ff6b6b);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 12px;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .friend-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .friend-avatar .avatar-initial,
+        .leader-avatar .avatar-initial {
+            font-weight: 700;
+            color: white;
+            line-height: 1;
+        }
+
+        .friend-avatar .avatar-initial {
+            font-size: 1.8rem;
+        }
+
+        .friend-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+        }
+
+        .vote-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--accent);
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            font-weight: 700;
+            animation: popIn 0.3s ease;
+        }
+
+        /* Swipe Indicator */
+        .swipe-indicator {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-card);
+            padding: 12px 25px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+            animation: bounce 2s ease infinite;
+            z-index: 100;
+        }
+
+        .swipe-indicator svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Leaderboard - Admin Only */
+        .leaderboard {
+            display: none;
+        }
+
+        .leaderboard-section {
+            margin-bottom: 35px;
+        }
+
+        .leaderboard-title {
+            font-size: 1.4rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+        }
+
+        .leader-item {
+            display: flex;
+            align-items: center;
+            padding: 18px 20px;
+            background: var(--bg-card);
+            border-radius: 16px;
+            margin-bottom: 12px;
+            border: 1px solid var(--border);
+            transition: all 0.3s;
+        }
+
+        .leader-item:hover {
+            transform: translateX(5px);
+            border-color: var(--accent);
+        }
+
+        .leader-rank {
+            font-size: 1.5rem;
+            font-weight: 900;
+            margin-right: 15px;
+            width: 35px;
+            text-align: center;
+        }
+
+        .leader-rank.gold { color: #FFD700; }
+        .leader-rank.silver { color: #C0C0C0; }
+        .leader-rank.bronze { color: #CD7F32; }
+
+        .leader-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), #ff6b6b);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .leader-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .leader-avatar .avatar-initial {
+            font-size: 1.25rem;
+        }
+
+        .leader-info {
+            flex: 1;
+        }
+
+        .leader-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+            font-size: 1rem;
+        }
+
+        .leader-votes {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .leader-score {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        /* Admin Panel */
+        .admin-panel {
+            display: none;
+        }
+
+        .admin-login {
+            max-width: 400px;
+            margin: 80px auto;
+            background: var(--bg-card);
+            padding: 40px 30px;
+            border-radius: 24px;
+            border: 1px solid var(--border);
+        }
+
+        .admin-login h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 1.8rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px 18px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            padding: 25px 20px;
+            border-radius: 16px;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        .stat-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .admin-section {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 1px solid var(--border);
+        }
+
+        .admin-section h3 {
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+        }
+
+        .vote-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .vote-item {
+            padding: 15px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .vote-item:last-child {
+            border-bottom: none;
+        }
+
+        .vote-question {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .vote-stats {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .reset-btn {
+            background: #ff4444;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .reset-btn:hover {
+            background: #cc0000;
+        }
+
+        /* Animations */
+        @keyframes slideUp {
+            from { 
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes popIn {
+            from { 
+                opacity: 0;
+                transform: scale(0);
+            }
+            to { 
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(-8px); }
+        }
+
+        @keyframes floatUp {
+            0% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-100px) scale(1.5);
+            }
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .logo {
+                font-size: 3.5rem;
+            }
+
+            .landing h1 {
+                font-size: 1.6rem;
+            }
+
+            .landing p {
+                font-size: 1rem;
+            }
+
+            .btn {
+                padding: 14px 30px;
+                font-size: 1rem;
+            }
+
+            .question-text {
+                font-size: 1.4rem;
+            }
+
+            .question-emoji {
+                font-size: 3.5rem;
+            }
+
+            .friends-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+
+            .friend-card {
+                padding: 18px 12px;
+            }
+
+            .friend-avatar {
+                width: 50px;
+                height: 50px;
+            }
+
+            .friend-avatar .avatar-initial {
+                font-size: 1.5rem;
+            }
+
+            .container {
+                padding: 90px 15px 40px;
+            }
+
+            .nav-links a {
+                padding: 6px 12px;
+                font-size: 0.85rem;
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .page {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .emoji-reaction {
+            position: fixed;
+            font-size: 2.5rem;
+            pointer-events: none;
+            animation: floatUp 1s ease forwards;
+            z-index: 9999;
+        }
+
+        .admin-badge {
+            background: var(--accent);
+            color: white;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-left: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-image"></div>
+    <div class="bg-overlay"></div>
+
+    <!-- Landing Page -->
+    <div class="landing" id="landingPage">
+        <div class="logo">Garret</div>
+        <h1>Хамгийн хамгийн нь.</h1>
+        <p>!!! Aнхаар !!! Госту байхдаa vote бөглөхгүй шүү хамаёоо .</p>
+        <div class="btn-group">
+            <button class="btn" onclick="showPage('feed')">Эхлэх 🎯</button>
+            <button class="btn btn-secondary" onclick="showPage('admin')">Admin 🔐</button>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="nav hidden" id="mainNav">
+        <div class="nav-logo" onclick="showPage('landing')">Garret</div>
+        <div class="nav-links">
+            <a href="#" onclick="showPage('feed')" class="active" id="nav-feed">Feed</a>
+            <a href="#" onclick="showPage('admin')" id="nav-admin">Admin<span class="admin-badge">ADMIN</span></a>
+        </div>
+    </nav>
+
+    <div class="container hidden" id="mainContainer">
+        <!-- Question Feed Page -->
+        <div class="page active" id="feedPage">
+            <div class="question-feed" id="questionFeed">
+                <!-- Questions will be generated here -->
+            </div>
+            <div class="swipe-indicator">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+                </svg>
+                Доош swipe хий
+            </div>
+        </div>
+
+        <!-- Admin Page -->
+        <div class="page admin-panel" id="adminPage">
+            <div id="adminLogin" class="admin-login">
+                <h2>Admin Login 🔐</h2>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="adminPassword" placeholder="Enter admin password">
+                </div>
+                <button class="btn" onclick="adminLogin()" style="width: 100%;">Login</button>
+            </div>
+
+            <div id="adminDashboard" class="hidden">
+                <h2 style="margin-bottom: 25px; font-size: 1.8rem;">Admin Dashboard</h2>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalVotes">0</div>
+                        <div class="stat-label">Нийт Votes</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalQuestions">0</div>
+                        <div class="stat-label">Асуултууд</div>
+                    </div>
+                </div>
+
+                <!-- Leaderboard - Admin Only -->
+                <div class="admin-section">
+                    <h3>🏆 Leaderboard</h3>
+                    <div id="adminLeaderboard">
+                        <!-- Leaderboard will be generated here -->
+                    </div>
+                </div>
+
+                <div class="admin-section">
+                    <h3>📊 Vote Statistics</h3>
+                    <div class="vote-list" id="voteList">
+                        <!-- Vote list will be generated here -->
+                    </div>
+                </div>
+
+                <div class="admin-section">
+                    <h3>➕ Add New Question</h3>
+                    <div class="form-group">
+                        <input type="text" id="newQuestion" placeholder="Асуулт бичих...">
+                    </div>
+                    <div class="form-group">
+                        <input type="text" id="newQuestionEmoji" placeholder="Emoji (жишээ: 🍺)">
+                    </div>
+                    <button class="btn" onclick="addQuestion()" style="width: 100%;">Add Question</button>
+                </div>
+
+                <button class="btn reset-btn" onclick="resetAllVotes()">
+                    🗑️ Бүх Vote-уудыг цэвэрлэх
+                </button>
+
+                <button class="btn btn-secondary" onclick="adminLogout()" style="width: 100%; margin-top: 10px;">
+                    Logout
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data
+        /** Filenames inside the `images/` folder (same names as disk files). */
+        const MEMBER_IMG_DIR = 'images/';
+
+        const friends = [
+            { id: 1, name: 'Yesu', image: 'yesu.jpg' },
+            { id: 2, name: 'Tugsuu', image: 'tugsuu.jpg' },
+            { id: 3, name: 'Turuu', image: 'turuu.jpg' },
+            { id: 4, name: 'Uulaa', image: 'uula.jpg' },
+            { id: 5, name: 'Shinee', image: 'shinee.jpg' },
+            { id: 6, name: 'Maral', image: 'maral.jpg' },
+            { id: 7, name: 'Maralgoo', image: 'maralgoo.jpg' },
+            { id: 8, name: 'Anu jijg', image: 'anu_jijg.jpg' },
+            { id: 9, name: 'Anu tom', image: 'anu_tom.jpg' },
+            { id: 10, name: 'Nomin', image: 'nomin.jpg' },
+            { id: 11, name: 'Sender', image: 'sender.jpg' },
+            { id: 12, name: 'Misheel', image: 'misheel.jpg' },
+            { id: 13, name: 'Enguun', image: 'enguun.jpg' },
+            { id: 14, name: 'Enja', image: 'enja.jpg' }
+        ];
+
+        function memberAvatarSrc(friend) {
+            const raw = (friend && friend.image) ? String(friend.image) : '';
+            const file = raw.replace(/^.*[/\\]/, '').replace(/\.\.[\\/]/g, '');
+            return file ? MEMBER_IMG_DIR + encodeURIComponent(file) : '';
+        }
+
+        function memberAvatarHtml(friend) {
+            const src = memberAvatarSrc(friend);
+            if (src) {
+                const alt = String(friend.name || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+                return `<img src="${src}" alt="${alt}" loading="lazy">`;
+            }
+            const letter = ((friend.name || '').trim()[0] || '?').toUpperCase();
+            return `<span class="avatar-initial" aria-hidden="true">${letter}</span>`;
+        }
+
+        let questions = [
+            { id: 1, text: 'Хэн хамгийн хурдан согтдог нь вэ?', emoji: '🍺' },
+            { id: 2, text: 'Хэн хамгийн ховдог нь вэ?', emoji: '🍕' },
+            { id: 3, text: 'Хэн ex рүүгээ шөнө госту бичих магдлалтай вэ?', emoji: '📱' },
+            { id: 4, text: 'Хэн хамгийн хөгжилтэй нь вэ?', emoji: '😂' },
+            { id: 5, text: 'Хэн хамгийн dramatic нь вэ?', emoji: '🎭' },
+            { id: 6, text: 'Хэн хамгийн хөлдүү нь вэ?', emoji: '🤨' },
+            { id: 7, text: 'Group chat-ны буга ?', emoji: '💬' },
+            { id: 8, text: 'Хэн хамгийн хэл ам нь гүйцэгдэхээргүй хэрүүлч нь вэ?', emoji: '🤬' },
+            { id: 9, text: 'Хэн хамгийн халуухан нь вэ?', emoji: '🫦' },
+            { id: 10, text: '24/7 Госту ', emoji: '🍻' },
+            { id: 11, text: 'Хэн хамгийн хөөрхөн нь вэ?', emoji: '🌹' },
+            { id: 12, text: 'Хэн хамгийн унтамхай нь вэ?', emoji: '😴' }
+        ];
+
+        let votes = {};
+        let isAdmin = false;
+
+        // Initialize
+        function init() {
+            loadData();
+            renderQuestions();
+        }
+
+        // Local Storage
+        function createEmptyVotes() {
+            const emptyVotes = {};
+            questions.forEach(q => {
+                emptyVotes[q.id] = {};
+                friends.forEach(f => {
+                    emptyVotes[q.id][f.id] = 0;
+                });
+            });
+            return emptyVotes;
+        }
+
+        function loadData() {
+            const savedVotes = localStorage.getItem('noballs_votes');
+            const savedQuestions = localStorage.getItem('noballs_questions');
+
+            if (savedQuestions) {
+                questions = JSON.parse(savedQuestions);
+            }
+
+            votes = createEmptyVotes();
+
+            if (savedVotes) {
+                try {
+                    const parsedVotes = JSON.parse(savedVotes);
+                    Object.keys(parsedVotes).forEach(qid => {
+                        if (!votes[qid]) return;
+                        Object.keys(parsedVotes[qid]).forEach(fid => {
+                            if (votes[qid][fid] !== undefined) {
+                                votes[qid][fid] = Number(parsedVotes[qid][fid]) || 0;
+                            }
+                        });
+                    });
+                } catch (error) {
+                    console.warn('Invalid saved votes, resetting to zero.', error);
+                }
+            }
+        }
+
+        function saveData() {
+            localStorage.setItem('noballs_votes', JSON.stringify(votes));
+            localStorage.setItem('noballs_questions', JSON.stringify(questions));
+        }
+
+        // Navigation
+        function showPage(pageName) {
+            document.getElementById('landingPage').classList.add('hidden');
+            document.getElementById('mainNav').classList.remove('hidden');
+            document.getElementById('mainContainer').classList.remove('hidden');
+
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+
+            if (pageName === 'landing') {
+                document.getElementById('landingPage').classList.remove('hidden');
+                document.getElementById('mainNav').classList.add('hidden');
+                document.getElementById('mainContainer').classList.add('hidden');
+            } else if (pageName === 'feed') {
+                document.getElementById('feedPage').classList.add('active');
+                document.getElementById('nav-feed').classList.add('active');
+            } else if (pageName === 'admin') {
+                document.getElementById('adminPage').classList.add('active');
+                document.getElementById('nav-admin').classList.add('active');
+            }
+        }
+
+        // Render Questions
+        function renderQuestions() {
+            const feed = document.getElementById('questionFeed');
+            feed.innerHTML = '';
+
+            questions.forEach((question, index) => {
+                const card = createQuestionCard(question, index);
+                feed.appendChild(card);
+            });
+        }
+
+        function createQuestionCard(question, index) {
+            const card = document.createElement('div');
+            card.className = 'question-card';
+            card.innerHTML = `
+                <div class="question-header">
+                    <span class="question-number">Асуулт ${index + 1}</span>
+                    <div class="question-emoji">${question.emoji}</div>
+                    <div class="question-text">${question.text}</div>
+                </div>
+                <div class="friends-grid" id="friends-${question.id}">
+                    ${friends.map(friend => `
+                        <div class="friend-card" onclick="vote(${question.id}, ${friend.id}, event)">
+                            <div class="friend-avatar">${memberAvatarHtml(friend)}</div>
+                            <div class="friend-name">${friend.name}</div>
+                            ${votes[question.id] && votes[question.id][friend.id] > 0 ? `
+                                <div class="vote-badge">${calculatePercentage(question.id, friend.id)}%</div>
+                            ` : ''}
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            return card;
+        }
+
+        // Voting
+        function vote(questionId, friendId, event) {
+            const emojis = ['🔥', '💯', '😂', '🎯', '', ''];
+            const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
+            createEmojiReaction(event.clientX, event.clientY, randomEmoji);
+
+            if (!votes[questionId]) {
+                votes[questionId] = {};
+                friends.forEach(f => {
+                    votes[questionId][f.id] = 0;
+                });
+            }
+
+            Object.keys(votes[questionId]).forEach(fid => {
+                if (votes[questionId][fid] > 0) {
+                    votes[questionId][fid]--;
+                }
+            });
+
+            votes[questionId][friendId] = (votes[questionId][friendId] || 0) + 1;
+            saveData();
+
+            updateVoteUI(questionId);
+        }
+
+        function createEmojiReaction(x, y, emoji) {
+            const el = document.createElement('div');
+            el.className = 'emoji-reaction';
+            el.textContent = emoji;
+            el.style.left = x + 'px';
+            el.style.top = y + 'px';
+            document.body.appendChild(el);
+            
+            setTimeout(() => el.remove(), 1000);
+        }
+
+        function calculatePercentage(questionId, friendId) {
+            const total = Object.values(votes[questionId] || {}).reduce((a, b) => a + b, 0);
+            if (total === 0) return 0;
+            return Math.round((votes[questionId][friendId] / total) * 100);
+        }
+
+        function updateVoteUI(questionId) {
+            const container = document.getElementById(`friends-${questionId}`);
+            if (!container) return;
+
+            const cards = container.querySelectorAll('.friend-card');
+            cards.forEach((card, index) => {
+                const friend = friends[index];
+                const percentage = calculatePercentage(questionId, friend.id);
+                
+                let badgeEl = card.querySelector('.vote-badge');
+                if (badgeEl) badgeEl.remove();
+
+                if (percentage > 0) {
+                    const div = document.createElement('div');
+                    div.className = 'vote-badge';
+                    div.textContent = percentage + '%';
+                    card.appendChild(div);
+                }
+
+                card.classList.remove('voted');
+                if (votes[questionId][friend.id] > 0) {
+                    card.classList.add('voted');
+                }
+            });
+        }
+
+        // Admin Functions
+        function adminLogin() {
+            const password = document.getElementById('adminPassword').value;
+            if (password === 'admin123') {
+                isAdmin = true;
+                document.getElementById('adminLogin').classList.add('hidden');
+                document.getElementById('adminDashboard').classList.remove('hidden');
+                updateAdminStats();
+                renderAdminLeaderboard();
+            } else {
+                alert('❌ Буруу password!');
+            }
+        }
+
+        function adminLogout() {
+            isAdmin = false;
+            document.getElementById('adminLogin').classList.remove('hidden');
+            document.getElementById('adminDashboard').classList.add('hidden');
+            document.getElementById('adminPassword').value = '';
+        }
+
+        function renderAdminLeaderboard() {
+            const container = document.getElementById('adminLeaderboard');
+            container.innerHTML = '';
+
+            const scores = calculateTotalScores();
+            
+            scores.slice(0, 5).forEach((score, index) => {
+                const friend = friends.find(f => f.id === score.friendId);
+                const item = document.createElement('div');
+                item.className = 'leader-item';
+                
+                let rankClass = '';
+                if (index === 0) rankClass = 'gold';
+                else if (index === 1) rankClass = 'silver';
+                else if (index === 2) rankClass = 'bronze';
+                
+                item.innerHTML = `
+                    <div class="leader-rank ${rankClass}">#${index + 1}</div>
+                    <div class="leader-avatar">${memberAvatarHtml(friend)}</div>
+                    <div class="leader-info">
+                        <div class="leader-name">${friend.name}</div>
+                        <div class="leader-votes">${score.votes} vote авсан</div>
+                    </div>
+                    <div class="leader-score">${score.score}</div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function calculateTotalScores() {
+            const scores = friends.map(friend => {
+                let score = 0;
+                let totalVotes = 0;
+
+                questions.forEach(q => {
+                    if (votes[q.id] && votes[q.id][friend.id]) {
+                        const qVotes = votes[q.id][friend.id];
+                        totalVotes += qVotes;
+                        score += qVotes;
+                    }
+                });
+
+                return {
+                    friendId: friend.id,
+                    score: score,
+                    votes: totalVotes
+                };
+            });
+
+            return scores.sort((a, b) => b.score - a.score);
+        }
+
+        function updateAdminStats() {
+            let totalVotes = 0;
+            Object.values(votes).forEach(q => {
+                Object.values(q).forEach(v => {
+                    totalVotes += v;
+                });
+            });
+
+            document.getElementById('totalVotes').textContent = totalVotes;
+            document.getElementById('totalQuestions').textContent = questions.length;
+
+            const voteList = document.getElementById('voteList');
+            voteList.innerHTML = '';
+
+            questions.forEach(q => {
+                const item = document.createElement('div');
+                item.className = 'vote-item';
+                
+                let topVoted = '';
+                let maxVotes = 0;
+                
+                Object.entries(votes[q.id] || {}).forEach(([fid, count]) => {
+                    if (count > maxVotes) {
+                        maxVotes = count;
+                        const friend = friends.find(f => f.id === parseInt(fid));
+                        topVoted = friend ? friend.name : '';
+                    }
+                });
+
+                item.innerHTML = `
+                    <div>
+                        <div class="vote-question">${q.emoji} ${q.text}</div>
+                        <div class="vote-stats">${maxVotes} votes - Top: ${topVoted}</div>
+                    </div>
+                `;
+                voteList.appendChild(item);
+            });
+        }
+
+        function addQuestion() {
+            const text = document.getElementById('newQuestion').value;
+            const emoji = document.getElementById('newQuestionEmoji').value || '❓';
+
+            if (!text) {
+                alert('Асуулт бичнэ үү!');
+                return;
+            }
+
+            const newId = Math.max(...questions.map(q => q.id)) + 1;
+            questions.push({ id: newId, text, emoji });
+            
+            votes[newId] = {};
+            friends.forEach(f => {
+                votes[newId][f.id] = 0;
+            });
+
+            saveData();
+            renderQuestions();
+            updateAdminStats();
+            renderAdminLeaderboard();
+
+            document.getElementById('newQuestion').value = '';
+            document.getElementById('newQuestionEmoji').value = '';
+            
+            alert('✅ Асуулт нэмэгдлээ!');
+        }
+
+        function resetAllVotes() {
+            if (confirm('Бүх vote-уудыг цэвэрлэх үү?')) {
+                questions.forEach(q => {
+                    votes[q.id] = {};
+                    friends.forEach(f => {
+                        votes[q.id][f.id] = 0;
+                    });
+                });
+                saveData();
+                renderQuestions();
+                updateAdminStats();
+                renderAdminLeaderboard();
+                alert('✅ Бүх vote-ууд цэвэрлэгдлээ!');
+            }
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
