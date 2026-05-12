@@ -18,7 +18,7 @@
         }
         .bg-image {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-image: url('/images/background.jpg'); background-size: cover;
+            background-image: url('./images/background.jpg'); background-size: cover;
             background-position: center; opacity: 0.1; z-index: -1;
         }
         .bg-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
@@ -200,6 +200,15 @@
         }
         #connectionStatus.connected { background: var(--success); color: #000; display: block; }
         #connectionStatus.disconnected { background: #ff6b6b; color: white; display: block; }
+        .friend-card.voted::after {
+            content: '✓';
+            position: absolute; top: 8px; right: 8px;
+            width: 24px; height: 24px; background: var(--success);
+            color: white; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.9rem; font-weight: 700;
+            animation: popIn 0.3s ease;
+        }
     </style>
 </head>
 <body>
@@ -280,7 +289,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 
     <script>
-        // 🔥 Firebase Configuration - REPLACE WITH YOUR ACTUAL VALUES
+        // 🔥 Firebase Configuration
         const firebaseConfig = {
   apiKey: "AIzaSyBGTPmuwsIne5nFv5qcqgp3SLBFd31fLV4",
   authDomain: "garret-9cbae.firebaseapp.com",
@@ -299,6 +308,7 @@
         // 🔥 Global flags
         let firebaseListenerAttached = false;
         let remoteAvailable = false;
+        let isAdmin = false;
 
         // Data
         const MEMBER_IMG_DIR = 'images/';
@@ -343,24 +353,43 @@
             { id: 12, text: 'Хэн хамгийн унтамхай нь вэ?', emoji: '😴' }
         ];
 
-        let votes = {};
+        // 🔐 LOCAL votes only (not synced until submit)
+        let localVotes = {};
         let localSelectedVotes = {};
+        
+        // 🔐 REMOTE votes (admin reads these from Firebase)
         let remoteCounts = {};
-        let isAdmin = false;
 
-        const LOCAL_VOTE_KEY = 'noballs_votes';
-        const LOCAL_SELECTED_KEY = 'noballs_selected';
-        const LOCAL_QUESTIONS_KEY = 'noballs_questions';
-        const LOCAL_CLIENT_ID_KEY = 'noballs_client_id';
-        const LOCAL_LAST_SUBMIT_KEY = 'noballs_last_submit';
+        const LOCAL_VOTE_KEY = 'garret_local_votes';
+        const LOCAL_SELECTED_KEY = 'garret_local_selected';
+        const LOCAL_QUESTIONS_KEY = 'garret_questions';
+        const LOCAL_CLIENT_ID_KEY = 'garret_client_id';
+        const LOCAL_LAST_SUBMIT_KEY = 'garret_last_submit';
         const SUBMIT_URL = '';
         const SUBMIT_KEY = '';
 
-        // 🔥 Load votes from Firebase
+        // 🔐 Initialize local vote storage
+        function createEmptyLocalVotes() {
+            const empty = {};
+            questions.forEach(q => { empty[q.id] = null; });
+            return empty;
+        }
+
+        function createEmptyRemoteCounts() {
+            const empty = {};
+            questions.forEach(q => {
+                empty[q.id] = {};
+                friends.forEach(f => { empty[q.id][f.id] = 0; });
+            });
+            return empty;
+        }
+
+        // 🔥 Load remote vote totals from Firebase (for admin + display logic)
         async function loadFirebaseVotes() {
             try {
                 const snapshot = await db.ref('votes').once('value');
                 const data = snapshot.val() || {};
+                remoteCounts = createEmptyRemoteCounts();
                 questions.forEach(q => {
                     friends.forEach(f => {
                         const key = `${q.id}_${f.id}`;
@@ -379,59 +408,41 @@
 
         function updateConnectionStatus(connected) {
             const el = document.getElementById('connectionStatus');
+            if (!el) return;
             if (connected) {
-                el.textContent = '🟢 Live sync';
+                el.textContent = '🟢 Live';
                 el.className = 'connected';
             } else {
-                el.textContent = '🔴 Offline mode';
+                el.textContent = '🔴 Offline';
                 el.className = 'disconnected';
             }
         }
 
-        // Local Storage helpers
-        function createEmptyVotes() {
-            const empty = {};
-            questions.forEach(q => { empty[q.id] = {}; friends.forEach(f => { empty[q.id][f.id] = 0; }); });
-            return empty;
-        }
-        function createEmptySelectedVotes() {
-            const selected = {};
-            questions.forEach(q => { selected[q.id] = null; });
-            return selected;
-        }
+        // 🔐 Load local votes from localStorage
         function loadData() {
-            const savedVotes = localStorage.getItem(LOCAL_VOTE_KEY);
             const savedSelected = localStorage.getItem(LOCAL_SELECTED_KEY);
             const savedQuestions = localStorage.getItem(LOCAL_QUESTIONS_KEY);
             if (savedQuestions) questions = JSON.parse(savedQuestions);
-            votes = createEmptyVotes();
-            localSelectedVotes = createEmptySelectedVotes();
-            remoteCounts = createEmptyVotes();
-            if (savedVotes) {
-                try {
-                    const parsed = JSON.parse(savedVotes);
-                    Object.keys(parsed).forEach(qid => {
-                        if (!votes[qid]) return;
-                        Object.keys(parsed[qid]).forEach(fid => {
-                            if (votes[qid][fid] !== undefined) {
-                                votes[qid][fid] = Number(parsed[qid][fid]) || 0;
-                                if (votes[qid][fid] > 0) localSelectedVotes[qid] = Number(fid);
-                            }
-                        });
-                    });
-                } catch (e) { console.warn('Invalid saved votes', e); }
-            }
+            localSelectedVotes = createEmptyLocalVotes();
+            localVotes = createEmptyLocalVotes();
+            remoteCounts = createEmptyRemoteCounts();
             if (savedSelected) {
                 try {
                     const parsed = JSON.parse(savedSelected);
                     Object.keys(parsed).forEach(qid => {
-                        if (localSelectedVotes[qid] !== undefined) localSelectedVotes[qid] = Number(parsed[qid]);
+                        if (localSelectedVotes[qid] !== undefined) {
+                            localSelectedVotes[qid] = parsed[qid];
+                            if (parsed[qid] !== null) {
+                                localVotes[qid] = parsed[qid];
+                            }
+                        }
                     });
-                } catch (e) { console.warn('Invalid selected state', e); }
+                } catch (e) { console.warn('Invalid saved votes', e); }
             }
         }
-        function saveData() {
-            localStorage.setItem(LOCAL_VOTE_KEY, JSON.stringify(votes));
+
+        // 🔐 Save local votes to localStorage
+        function saveLocalData() {
             localStorage.setItem(LOCAL_SELECTED_KEY, JSON.stringify(localSelectedVotes));
             localStorage.setItem(LOCAL_QUESTIONS_KEY, JSON.stringify(questions));
         }
@@ -463,14 +474,15 @@
             questions.forEach((q, i) => feed.appendChild(createQuestionCard(q, i)));
             appendVoteSubmitFooter();
         }
+
         function appendVoteSubmitFooter() {
             const feed = document.getElementById('questionFeed');
             const footer = document.createElement('div');
             footer.className = 'vote-submit-section';
             footer.innerHTML = `
                 <div class="vote-submit-card">
-                    <p class="vote-submit-hint">Дууссаны дараа дарна уу.</p>
-                    <button type="button" class="btn vote-submit-btn" id="submitVotesBtn">Submit</button>
+                    <p class="vote-submit-hint">Бүх асуултад хариулсны дараа дарна уу.</p>
+                    <button type="button" class="btn vote-submit-btn" id="submitVotesBtn">Submit Votes 🚀</button>
                     <p class="vote-submit-status" id="submitVotesStatus" role="status"></p>
                 </div>`;
             feed.appendChild(footer);
@@ -499,30 +511,86 @@
             };
         }
 
+        // 🔐 SUBMIT: Send all local votes to Firebase in one batch
         async function submitVotes() {
             const btn = document.getElementById('submitVotesBtn');
             const statusEl = document.getElementById('submitVotesStatus');
             if (!btn || !statusEl) return;
-            statusEl.classList.remove('ok','err');
-            const url = (SUBMIT_URL||'').trim();
-            if (!url) { statusEl.classList.add('err'); statusEl.textContent = 'Илгээх тохиргоо хийгээгүй байна.'; return; }
-            const missing = questions.filter(q => localSelectedVotes[q.id] == null);
-            if (missing.length > 0 && !confirm(`Чи ${missing.length} асуултад сонголт хийгээгүй байна. Гэсэн ч илгээх үү?`)) return;
             
-            btn.disabled = true; statusEl.textContent = 'Илгээж байна...';
+            // Check if all questions are answered
+            const unanswered = questions.filter(q => localSelectedVotes[q.id] === null);
+            if (unanswered.length > 0) {
+                if (!confirm(`Та ${unanswered.length} асуултад хариулаагүй байна. Үргэлжлүүлэх үү?`)) {
+                    return;
+                }
+            }
+
+            statusEl.classList.remove('ok', 'err');
+            btn.disabled = true;
+            statusEl.textContent = 'Илгээж байна...';
+
             try {
-                const payload = buildVoteSubmissionPayload();
-                const headers = { 'Content-Type': 'application/json' };
-                const key = (SUBMIT_KEY||'').trim();
-                if (key) { headers['apikey'] = key; headers['Authorization'] = `Bearer ${key}`; headers['Prefer'] = 'return=minimal'; }
-                const res = await fetch(url, { method: 'POST', mode: 'cors', headers, body: JSON.stringify({ payload }) });
-                if (!res.ok) throw new Error(await res.text().catch(()=>`HTTP ${res.status}`));
-                localStorage.setItem(LOCAL_LAST_SUBMIT_KEY, payload.submittedAt);
-                statusEl.classList.add('ok'); statusEl.textContent = 'Амжилттай илгээгдлээ ✅';
+                // 🔥 Batch update Firebase with all votes
+                const updates = {};
+                questions.forEach(q => {
+                    const fid = localSelectedVotes[q.id];
+                    if (fid !== null) {
+                        const key = `${q.id}_${fid}`;
+                        updates[key] = firebase.database.ServerValue.increment(1);
+                    }
+                });
+
+                if (Object.keys(updates).length > 0) {
+                    await db.ref('votes').update(updates);
+                    console.log('✅ Votes submitted to Firebase');
+                }
+
+                // Optional: Send to external webhook
+                const url = (SUBMIT_URL || '').trim();
+                if (url) {
+                    const payload = buildVoteSubmissionPayload();
+                    const headers = { 'Content-Type': 'application/json' };
+                    const key = (SUBMIT_KEY || '').trim();
+                    if (key) {
+                        headers['apikey'] = key;
+                        headers['Authorization'] = `Bearer ${key}`;
+                        headers['Prefer'] = 'return=minimal';
+                    }
+                    await fetch(url, { method: 'POST', mode: 'cors', headers, body: JSON.stringify({ payload }) });
+                }
+
+                localStorage.setItem(LOCAL_LAST_SUBMIT_KEY, new Date().toISOString());
+                statusEl.classList.add('ok');
+                statusEl.textContent = '✅ Амжилттай илгээгдлээ!';
+                
+                // Refresh admin view if needed
+                if (isAdmin) {
+                    await loadFirebaseVotes();
+                    updateAdminStats();
+                    renderAdminLeaderboard();
+                }
             } catch (err) {
                 console.warn('Submit failed', err);
-                statusEl.classList.add('err'); statusEl.textContent = 'Илгээхэд алдаа: ' + (err?.message || String(err));
-            } finally { btn.disabled = false; }
+                statusEl.classList.add('err');
+                statusEl.textContent = '❌ Алдаа: ' + (err?.message || String(err));
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        // 🔐 Hide vote badges on public feed - only admin sees counts
+        function getVoteBadgeHtml(questionId, friendId, adminView = false) {
+            if (!adminView && !isAdmin) {
+                return ''; // Hide from public
+            }
+            const count = getRemoteVoteCount(questionId, friendId);
+            if (!count) return '';
+            return `<div class="vote-badge">${count}</div>`;
+        }
+
+        // 🔐 Get vote count from Firebase (admin only effectively)
+        function getRemoteVoteCount(questionId, friendId) {
+            return (remoteCounts[questionId]?.[friendId]) ? Number(remoteCounts[questionId][friendId]) : 0;
         }
 
         function createQuestionCard(question, index) {
@@ -540,91 +608,46 @@
                         <div class="friend-card ${selected===f.id?'voted':''}" onclick="vote(${question.id},${f.id},event)">
                             <div class="friend-avatar">${memberAvatarHtml(f)}</div>
                             <div class="friend-name">${f.name}</div>
-                            ${getVoteBadgeHtml(question.id, f.id)}
+                            ${getVoteBadgeHtml(question.id, f.id, false)}
                         </div>`).join('')}
                 </div>`;
             return card;
         }
 
-        // Vote counting
-        function getVoteCount(qid, fid) {
-            const src = remoteAvailable ? remoteCounts : votes;
-            return (src[qid]?.[fid]) ? Number(src[qid][fid]) : 0;
-        }
-        function getQuestionTotal(qid) {
-            const src = remoteAvailable ? remoteCounts : votes;
-            return Object.values(src[qid]||{}).reduce((s,v)=>s+Number(v||0),0);
-        }
-        function calculatePercentage(qid, fid) {
-            const total = getQuestionTotal(qid);
-            return total === 0 ? 0 : Math.round((getVoteCount(qid,fid)/total)*100);
-        }
-        function getVoteBadgeHtml(qid, fid) {
-            const count = getVoteCount(qid, fid);
-            if (!count) return '';
-            return `<div class="vote-badge">${remoteAvailable ? count : calculatePercentage(qid,fid)+'%'}</div>`;
-        }
-        function updateAllVoteUI() { questions.forEach(q => updateVoteUI(q.id)); }
-        function updateVoteUI(qid) {
-            const container = document.getElementById(`friends-${qid}`);
-            if (!container) return;
-            container.querySelectorAll('.friend-card').forEach((card, idx) => {
-                const f = friends[idx];
-                const count = getVoteCount(qid, f.id);
-                let badge = card.querySelector('.vote-badge');
-                if (badge) badge.remove();
-                if (count > 0) {
-                    const div = document.createElement('div');
-                    div.className = 'vote-badge';
-                    div.textContent = remoteAvailable ? count : `${calculatePercentage(qid,f.id)}%`;
-                    card.appendChild(div);
-                }
-                card.classList.toggle('voted', localSelectedVotes[qid] === f.id);
-            });
-        }
-
-        // 🔥 Voting with Firebase
-        async function vote(questionId, friendId, event) {
+        // 🔐 LOCAL voting only - NO Firebase update until submit
+        function vote(questionId, friendId, event) {
             const emojis = ['🔥','💯','😂','🎯','✨','🎉'];
             createEmojiReaction(event.clientX, event.clientY, emojis[Math.floor(Math.random()*emojis.length)]);
-            const prev = localSelectedVotes[questionId];
-            if (prev === friendId) return;
-            localSelectedVotes[questionId] = friendId;
-
-            // Update Firebase
-            try {
-                const updates = {};
-                const key = (qid,fid) => `${qid}_${fid}`;
-                if (prev) updates[key(questionId,prev)] = firebase.database.ServerValue.increment(-1);
-                updates[key(questionId,friendId)] = firebase.database.ServerValue.increment(1);
-                await db.ref('votes').update(updates);
-            } catch (err) {
-                console.warn('Firebase update failed, using local fallback', err);
-                applyLocalVote(questionId, prev, friendId);
-            }
-
-            // Attach real-time listener ONCE
-            if (!firebaseListenerAttached) {
-                firebaseListenerAttached = true;
-                db.ref('votes').on('value', snap => {
-                    const data = snap.val() || {};
-                    questions.forEach(q => friends.forEach(f => {
-                        remoteCounts[q.id][f.id] = Number(data[`${q.id}_${f.id}`]) || 0;
-                    }));
-                    updateAllVoteUI();
-                    if (isAdmin) { updateAdminStats(); renderAdminLeaderboard(); }
-                });
-                console.log('🔗 Firebase listener attached');
-            }
-            saveData();
+            
+            // Update local state only
+            localSelectedVotes[question.id] = friendId;
+            saveLocalData();
+            
+            // Update UI locally
             updateVoteUI(questionId);
         }
 
-        function applyLocalVote(qid, prev, fid) {
-            if (!votes[qid]) { votes[qid] = {}; friends.forEach(f => votes[qid][f.id]=0); }
-            if (prev) votes[qid][prev] = Math.max(0, votes[qid][prev]-1);
-            votes[qid][fid] = (votes[qid][fid]||0) + 1;
-            saveData();
+        function updateVoteUI(questionId) {
+            const container = document.getElementById(`friends-${questionId}`);
+            if (!container) return;
+            container.querySelectorAll('.friend-card').forEach((card, idx) => {
+                const f = friends[idx];
+                // Remove any existing badge
+                let badge = card.querySelector('.vote-badge');
+                if (badge) badge.remove();
+                // Add badge only if admin (public sees nothing)
+                if (isAdmin) {
+                    const count = getRemoteVoteCount(questionId, f.id);
+                    if (count > 0) {
+                        const div = document.createElement('div');
+                        div.className = 'vote-badge';
+                        div.textContent = count;
+                        card.appendChild(div);
+                    }
+                }
+                // Update selected state visual
+                card.classList.toggle('voted', localSelectedVotes[questionId] === f.id);
+            });
         }
 
         function createEmojiReaction(x,y,emoji) {
@@ -635,30 +658,41 @@
             setTimeout(()=>el.remove(),1000);
         }
 
-        // Admin
+        // Admin functions
         function adminLogin() {
             if (document.getElementById('adminPassword').value === 'admin123') {
                 isAdmin = true;
                 document.getElementById('adminLogin').classList.add('hidden');
                 document.getElementById('adminDashboard').classList.remove('hidden');
-                updateAdminStats(); renderAdminLeaderboard();
+                // Refresh vote counts for admin view
+                loadFirebaseVotes().then(() => {
+                    updateAllVoteUI();
+                    updateAdminStats();
+                    renderAdminLeaderboard();
+                });
             } else alert('❌ Буруу password!');
         }
+
         function adminLogout() {
             isAdmin = false;
             document.getElementById('adminLogin').classList.remove('hidden');
             document.getElementById('adminDashboard').classList.add('hidden');
             document.getElementById('adminPassword').value = '';
+            // Re-render feed to hide badges
+            renderQuestions();
         }
+
         function calculateTotalScores() {
             return friends.map(f => {
-                let score=0, totalVotes=0;
-                questions.forEach(q => { const v=getVoteCount(q.id,f.id); totalVotes+=v; score+=v; });
-                return { friendId: f.id, score, votes: totalVotes };
-            }).sort((a,b)=>b.score-a.score);
+                let score = 0;
+                questions.forEach(q => { score += getRemoteVoteCount(q.id, f.id); });
+                return { friendId: f.id, score };
+            }).sort((a,b) => b.score - a.score);
         }
+
         function renderAdminLeaderboard() {
             const container = document.getElementById('adminLeaderboard');
+            if (!container) return;
             container.innerHTML = '';
             calculateTotalScores().slice(0,5).forEach((s,idx) => {
                 const f = friends.find(x=>x.id===s.friendId);
@@ -669,57 +703,100 @@
                     <div class="leader-avatar">${memberAvatarHtml(f)}</div>
                     <div class="leader-info">
                         <div class="leader-name">${f.name}</div>
-                        <div class="leader-votes">${s.votes} vote авсан</div>
+                        <div class="leader-votes">${s.score} оноо</div>
                     </div>
                     <div class="leader-score">${s.score}</div>`;
                 container.appendChild(item);
             });
         }
+
         function updateAdminStats() {
-            let total=0;
-            questions.forEach(q => friends.forEach(f => total+=getVoteCount(q.id,f.id)));
+            if (!isAdmin) return;
+            let total = 0;
+            questions.forEach(q => friends.forEach(f => total += getRemoteVoteCount(q.id, f.id)));
             document.getElementById('totalVotes').textContent = total;
             document.getElementById('totalQuestions').textContent = questions.length;
-            const list = document.getElementById('voteList'); list.innerHTML='';
+            const list = document.getElementById('voteList');
+            if (!list) return;
+            list.innerHTML = '';
             questions.forEach(q => {
                 let top='', max=0;
-                friends.forEach(f => { const c=getVoteCount(q.id,f.id); if(c>max){max=c;top=f.name;} });
+                friends.forEach(f => { 
+                    const c = getRemoteVoteCount(q.id, f.id); 
+                    if(c>max){max=c;top=f.name;} 
+                });
                 const item = document.createElement('div'); item.className='vote-item';
                 item.innerHTML = `<div><div class="vote-question">${q.emoji} ${q.text}</div><div class="vote-stats">${max} votes - Top: ${top}</div></div>`;
                 list.appendChild(item);
             });
         }
+
+        function updateAllVoteUI() {
+            if (!isAdmin) return;
+            questions.forEach(q => updateVoteUI(q.id));
+        }
+
         function addQuestion() {
             const text = document.getElementById('newQuestion').value;
             const emoji = document.getElementById('newQuestionEmoji').value || '❓';
             if (!text) { alert('Асуулт бичнэ үү!'); return; }
             const newId = Math.max(...questions.map(q=>q.id))+1;
             questions.push({id:newId, text, emoji});
-            votes[newId] = {}; friends.forEach(f => votes[newId][f.id]=0);
-            saveData(); renderQuestions(); updateAdminStats(); renderAdminLeaderboard();
-            document.getElementById('newQuestion').value=''; document.getElementById('newQuestionEmoji').value='';
+            localSelectedVotes[newId] = null;
+            saveLocalData();
+            renderQuestions();
+            if (isAdmin) {
+                loadFirebaseVotes().then(() => {
+                    updateAdminStats();
+                    renderAdminLeaderboard();
+                });
+            }
+            document.getElementById('newQuestion').value='';
+            document.getElementById('newQuestionEmoji').value='';
             alert('✅ Асуулт нэмэгдлээ!');
         }
+
         function resetAllVotes() {
             if (!confirm('Бүх vote-уудыг цэвэрлэх үү?')) return;
-            questions.forEach(q => { votes[q.id]={}; friends.forEach(f => votes[q.id][f.id]=0); });
-            saveData(); renderQuestions(); updateAdminStats(); renderAdminLeaderboard();
-            alert('✅ Бүх vote-ууд цэвэрлэгдлээ!');
+            // Reset Firebase
+            db.ref('votes').remove().then(() => {
+                // Reset local
+                localSelectedVotes = createEmptyLocalVotes();
+                saveLocalData();
+                renderQuestions();
+                if (isAdmin) {
+                    loadFirebaseVotes().then(() => {
+                        updateAdminStats();
+                        renderAdminLeaderboard();
+                    });
+                }
+                alert('✅ Бүх vote-ууд цэвэрлэгдлээ!');
+            }).catch(err => {
+                console.error('Reset failed', err);
+                alert('❌ Цэвэрлэхэд алдаа гарлаа');
+            });
         }
 
         // Init
         function init() {
             loadData();
+            renderQuestions();
             loadFirebaseVotes().then(() => {
-                renderQuestions();
-                if (remoteAvailable) { updateAdminStats(); renderAdminLeaderboard(); }
+                if (isAdmin) {
+                    updateAdminStats();
+                    renderAdminLeaderboard();
+                }
             });
             document.addEventListener('visibilitychange', async () => {
                 if (document.visibilityState !== 'visible') return;
                 await loadFirebaseVotes();
-                if (remoteAvailable) { updateAllVoteUI(); updateAdminStats(); renderAdminLeaderboard(); }
+                if (isAdmin) {
+                    updateAllVoteUI();
+                    updateAdminStats();
+                    renderAdminLeaderboard();
+                }
             });
-            // Connection status check
+            // Connection status
             db.ref('.info/connected').on('value', snap => {
                 updateConnectionStatus(snap.val() === true);
             });
