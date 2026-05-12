@@ -6,736 +6,206 @@
     <title>Garret - Найзуудаа expose хий</title>
     <meta http-equiv="Permissions-Policy" content="interest-cohort=()">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
-            --bg-primary: #0a0a0a;
-            --bg-secondary: #1a1a1a;
-            --bg-card: #242424;
-            --text-primary: #ffffff;
-            --text-secondary: #a0a0a0;
-            --accent: #ff3366;
-            --accent-hover: #ff1a4d;
-            --success: #00d084;
-            --border: #333333;
+            --bg-primary: #0a0a0a; --bg-secondary: #1a1a1a; --bg-card: #242424;
+            --text-primary: #ffffff; --text-secondary: #a0a0a0;
+            --accent: #ff3366; --accent-hover: #ff1a4d; --success: #00d084; --border: #333333;
         }
-
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            overflow-x: hidden;
-            min-height: 100vh;
+            background: var(--bg-primary); color: var(--text-primary); overflow-x: hidden; min-height: 100vh;
         }
-
-        /* Background */
         .bg-image {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: url('./images/background.jpg');
-            background-size: cover;
-            background-position: center;
-            opacity: 0.1;
-            z-index: -1;
-            
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url('/images/background.jpg'); background-size: cover;
+            background-position: center; opacity: 0.1; z-index: -1;
         }
-
-        .bg-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-        }
-
-        /* Landing Page */
+        .bg-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
         .landing {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 40px 20px;
-            text-align: center;
+            min-height: 100vh; display: flex; flex-direction: column; justify-content: center;
+            align-items: center; padding: 40px 20px; text-align: center;
         }
-
         .logo {
-            font-size: 4.5rem;
-            font-weight: 900;
+            font-size: 4.5rem; font-weight: 900;
             background: linear-gradient(135deg, var(--accent), #ff6b6b);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 20px;
-            letter-spacing: -3px;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text; margin-bottom: 20px; letter-spacing: -3px;
         }
-
-        .landing h1 {
-            font-size: 2.2rem;
-            margin-bottom: 15px;
-            font-weight: 700;
-        }
-
-        .landing p {
-            font-size: 1.2rem;
-            color: var(--text-secondary);
-            margin-bottom: 50px;
-        }
-
-        .btn-group {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
+        .landing h1 { font-size: 2.2rem; margin-bottom: 15px; font-weight: 700; }
+        .landing p { font-size: 1.2rem; color: var(--text-secondary); margin-bottom: 50px; }
+        .btn-group { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; }
         .btn {
-            background: var(--accent);
-            color: white;
-            border: none;
-            padding: 16px 40px;
-            font-size: 1.1rem;
-            border-radius: 50px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            box-shadow: 0 10px 30px rgba(255, 51, 102, 0.3);
+            background: var(--accent); color: white; border: none; padding: 16px 40px;
+            font-size: 1.1rem; border-radius: 50px; cursor: pointer; font-weight: 600;
+            transition: all 0.3s ease; box-shadow: 0 10px 30px rgba(255, 51, 102, 0.3);
         }
-
-        .btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 40px rgba(255, 51, 102, 0.4);
-            background: var(--accent-hover);
-        }
-
-        .btn-secondary {
-            background: var(--bg-card);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        }
-
-        .btn-secondary:hover {
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
-        }
-
-        /* Navigation */
+        .btn:hover { transform: translateY(-3px); box-shadow: 0 15px 40px rgba(255, 51, 102, 0.4); background: var(--accent-hover); }
+        .btn-secondary { background: var(--bg-card); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); }
+        .btn-secondary:hover { box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4); }
         .nav {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            
-            backdrop-filter: blur(20px);
-            padding: 15px 25px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 1000;
-            border-bottom: 1px solid var(--border);
+            position: fixed; top: 0; left: 0; right: 0; backdrop-filter: blur(20px);
+            padding: 15px 25px; display: flex; justify-content: space-between;
+            align-items: center; z-index: 1000; border-bottom: 1px solid var(--border);
         }
-
-        .nav-logo {
-            font-size: 1.8rem;
-            font-weight: 900;
-            color: var(--accent);
-            cursor: pointer;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-        }
-
+        .nav-logo { font-size: 1.8rem; font-weight: 900; color: var(--accent); cursor: pointer; }
+        .nav-links { display: flex; gap: 15px; align-items: center; }
         .nav-links a {
-            color: var(--text-secondary);
-            text-decoration: none;
-            font-weight: 500;
-            transition: all 0.3s;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 0.95rem;
+            color: var(--text-secondary); text-decoration: none; font-weight: 500;
+            transition: all 0.3s; padding: 8px 16px; border-radius: 20px; font-size: 0.95rem;
         }
-
-        .nav-links a:hover, .nav-links a.active {
-            color: var(--text-primary);
-            background: var(--bg-card);
-        }
-
-        /* Main Container */
-        .container {
-            max-width: 500px;
-            margin: 0 auto;
-            padding: 100px 20px 40px;
-            min-height: 100vh;
-        }
-
-        /* Question Feed - Clean Swipe Design */
+        .nav-links a:hover, .nav-links a.active { color: var(--text-primary); background: var(--bg-card); }
+        .container { max-width: 500px; margin: 0 auto; padding: 100px 20px 40px; min-height: 100vh; }
         .question-feed {
-            position: relative;
-            height: calc(100vh - 180px);
-            overflow-y: auto;
-            scroll-snap-type: y mandatory;
-            scrollbar-width: none;
-            padding-bottom: 80px;
+            position: relative; height: calc(100vh - 180px); overflow-y: auto;
+            scroll-snap-type: y mandatory; scrollbar-width: none; padding-bottom: 80px;
         }
-
-        .question-feed::-webkit-scrollbar {
-            display: none;
-        }
-
+        .question-feed::-webkit-scrollbar { display: none; }
         .question-card {
-            min-height: calc(100vh - 220px);
-            background: var(--bg-card);
-            border-radius: 24px;
-            padding: 30px 25px;
-            margin-bottom: 25px;
-            scroll-snap-align: start;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
-            border: 1px solid var(--border);
+            min-height: calc(100vh - 220px); background: var(--bg-card); border-radius: 24px;
+            padding: 30px 25px; margin-bottom: 25px; scroll-snap-align: start;
+            display: flex; flex-direction: column; justify-content: space-between;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4); border: 1px solid var(--border);
             animation: slideUp 0.5s ease;
         }
-
-        .question-header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .question-emoji {
-            font-size: 4.5rem;
-            margin-bottom: 20px;
-            display: block;
-        }
-
-        .question-text {
-            font-size: 1.6rem;
-            font-weight: 700;
-            line-height: 1.4;
-            color: var(--text-primary);
-        }
-
+        .question-header { text-align: center; margin-bottom: 30px; }
+        .question-emoji { font-size: 4.5rem; margin-bottom: 20px; display: block; }
+        .question-text { font-size: 1.6rem; font-weight: 700; line-height: 1.4; color: var(--text-primary); }
         .question-number {
-            display: inline-block;
-            background: var(--accent);
-            color: white;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            margin-bottom: 15px;
+            display: inline-block; background: var(--accent); color: white;
+            padding: 5px 15px; border-radius: 20px; font-size: 0.85rem;
+            font-weight: 600; margin-bottom: 15px;
         }
-
-        /* Friends Grid - Clean Layout */
-        .friends-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-        }
-
+        .friends-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
         .friend-card {
-            background: var(--bg-secondary);
-            border-radius: 16px;
-            padding: 20px 15px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: 2px solid transparent;
-            position: relative;
+            background: var(--bg-secondary); border-radius: 16px; padding: 20px 15px;
+            text-align: center; cursor: pointer; transition: all 0.3s ease;
+            border: 2px solid transparent; position: relative;
         }
-
-        .friend-card:hover {
-            transform: translateY(-3px);
-            border-color: var(--accent);
-            box-shadow: 0 8px 25px rgba(255, 51, 102, 0.2);
-        }
-
-        .friend-card.voted {
-            border-color: var(--success);
-            background: rgba(0, 208, 132, 0.1);
-        }
-
+        .friend-card:hover { transform: translateY(-3px); border-color: var(--accent); box-shadow: 0 8px 25px rgba(255, 51, 102, 0.2); }
+        .friend-card.voted { border-color: var(--success); background: rgba(0, 208, 132, 0.1); }
         .friend-avatar {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
+            width: 60px; height: 60px; border-radius: 50%;
             background: linear-gradient(135deg, var(--accent), #ff6b6b);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 12px;
-            overflow: hidden;
-            flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 12px; overflow: hidden; flex-shrink: 0;
         }
-
-        .friend-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
+        .friend-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .friend-avatar .avatar-initial, .leader-avatar .avatar-initial {
+            font-weight: 700; color: white; line-height: 1;
         }
-
-        .friend-avatar .avatar-initial,
-        .leader-avatar .avatar-initial {
-            font-weight: 700;
-            color: white;
-            line-height: 1;
-        }
-
-        .friend-avatar .avatar-initial {
-            font-size: 1.8rem;
-        }
-
-        .friend-name {
-            font-weight: 600;
-            font-size: 0.95rem;
-            color: var(--text-primary);
-        }
-
-        .vote-submit-section {
-            scroll-snap-align: start;
-            padding: 10px 0 48px;
-        }
-
+        .friend-avatar .avatar-initial { font-size: 1.8rem; }
+        .friend-name { font-weight: 600; font-size: 0.95rem; color: var(--text-primary); }
+        .vote-submit-section { scroll-snap-align: start; padding: 10px 0 48px; }
         .vote-submit-card {
-            background: var(--bg-card);
-            border-radius: 24px;
-            padding: 28px 22px;
-            border: 1px solid var(--border);
-            text-align: center;
+            background: var(--bg-card); border-radius: 24px; padding: 28px 22px;
+            border: 1px solid var(--border); text-align: center;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
         }
-
-        .vote-submit-hint {
-            color: var(--text-secondary);
-            font-size: 0.95rem;
-            margin-bottom: 18px;
-            line-height: 1.45;
-        }
-
-        .vote-submit-status {
-            margin-top: 14px;
-            font-size: 0.9rem;
-            min-height: 1.3em;
-            color: var(--text-secondary);
-        }
-
-        .vote-submit-status.ok {
-            color: var(--success);
-        }
-
-        .vote-submit-status.err {
-            color: #ff6b6b;
-        }
-
-        .vote-submit-btn:disabled {
-            opacity: 0.65;
-            cursor: wait;
-            transform: none;
-        }
-
+        .vote-submit-hint { color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 18px; line-height: 1.45; }
+        .vote-submit-status { margin-top: 14px; font-size: 0.9rem; min-height: 1.3em; color: var(--text-secondary); }
+        .vote-submit-status.ok { color: var(--success); }
+        .vote-submit-status.err { color: #ff6b6b; }
+        .vote-submit-btn:disabled { opacity: 0.65; cursor: wait; transform: none; }
         .vote-badge {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: var(--accent);
-            color: white;
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.85rem;
-            font-weight: 700;
-            animation: popIn 0.3s ease;
+            position: absolute; top: 10px; right: 10px; background: var(--accent);
+            color: white; width: 28px; height: 28px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.85rem; font-weight: 700; animation: popIn 0.3s ease;
         }
-
-        /* Swipe Indicator */
         .swipe-indicator {
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--bg-card);
-            padding: 12px 25px;
-            border-radius: 30px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            font-weight: 500;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
-            border: 1px solid var(--border);
-            animation: bounce 2s ease infinite;
-            z-index: 100;
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+            background: var(--bg-card); padding: 12px 25px; border-radius: 30px;
+            display: flex; align-items: center; gap: 10px; color: var(--text-secondary);
+            font-size: 0.9rem; font-weight: 500; box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border); animation: bounce 2s ease infinite; z-index: 100;
         }
-
-        .swipe-indicator svg {
-            width: 20px;
-            height: 20px;
-        }
-
-        /* Leaderboard - Admin Only */
-        .leaderboard {
-            display: none;
-        }
-
-        .leaderboard-section {
-            margin-bottom: 35px;
-        }
-
-        .leaderboard-title {
-            font-size: 1.4rem;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: 700;
-        }
-
+        .swipe-indicator svg { width: 20px; height: 20px; }
+        .leaderboard { display: none; }
+        .leaderboard-section { margin-bottom: 35px; }
+        .leaderboard-title { font-size: 1.4rem; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; font-weight: 700; }
         .leader-item {
-            display: flex;
-            align-items: center;
-            padding: 18px 20px;
-            background: var(--bg-card);
-            border-radius: 16px;
-            margin-bottom: 12px;
-            border: 1px solid var(--border);
-            transition: all 0.3s;
+            display: flex; align-items: center; padding: 18px 20px; background: var(--bg-card);
+            border-radius: 16px; margin-bottom: 12px; border: 1px solid var(--border); transition: all 0.3s;
         }
-
-        .leader-item:hover {
-            transform: translateX(5px);
-            border-color: var(--accent);
-        }
-
-        .leader-rank {
-            font-size: 1.5rem;
-            font-weight: 900;
-            margin-right: 15px;
-            width: 35px;
-            text-align: center;
-        }
-
-        .leader-rank.gold { color: #FFD700; }
-        .leader-rank.silver { color: #C0C0C0; }
-        .leader-rank.bronze { color: #CD7F32; }
-
+        .leader-item:hover { transform: translateX(5px); border-color: var(--accent); }
+        .leader-rank { font-size: 1.5rem; font-weight: 900; margin-right: 15px; width: 35px; text-align: center; }
+        .leader-rank.gold { color: #FFD700; } .leader-rank.silver { color: #C0C0C0; } .leader-rank.bronze { color: #CD7F32; }
         .leader-avatar {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
+            width: 50px; height: 50px; border-radius: 50%;
             background: linear-gradient(135deg, var(--accent), #ff6b6b);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 15px;
-            overflow: hidden;
-            flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            margin-right: 15px; overflow: hidden; flex-shrink: 0;
         }
-
-        .leader-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
-
-        .leader-avatar .avatar-initial {
-            font-size: 1.25rem;
-        }
-
-        .leader-info {
-            flex: 1;
-        }
-
-        .leader-name {
-            font-weight: 600;
-            margin-bottom: 4px;
-            font-size: 1rem;
-        }
-
-        .leader-votes {
-            color: var(--text-secondary);
-            font-size: 0.85rem;
-        }
-
-        .leader-score {
-            font-size: 1.4rem;
-            font-weight: 700;
-            color: var(--accent);
-        }
-
-        /* Admin Panel */
-        .admin-panel {
-            display: none;
-        }
-
+        .leader-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .leader-avatar .avatar-initial { font-size: 1.25rem; }
+        .leader-info { flex: 1; }
+        .leader-name { font-weight: 600; margin-bottom: 4px; font-size: 1rem; }
+        .leader-votes { color: var(--text-secondary); font-size: 0.85rem; }
+        .leader-score { font-size: 1.4rem; font-weight: 700; color: var(--accent); }
+        .admin-panel { display: none; }
         .admin-login {
-            max-width: 400px;
-            margin: 80px auto;
-            background: var(--bg-card);
-            padding: 40px 30px;
-            border-radius: 24px;
-            border: 1px solid var(--border);
+            max-width: 400px; margin: 80px auto; background: var(--bg-card);
+            padding: 40px 30px; border-radius: 24px; border: 1px solid var(--border);
         }
-
-        .admin-login h2 {
-            text-align: center;
-            margin-bottom: 30px;
-            font-size: 1.8rem;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-        }
-
+        .admin-login h2 { text-align: center; margin-bottom: 30px; font-size: 1.8rem; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-secondary); font-size: 0.9rem; }
         .form-group input {
-            width: 100%;
-            padding: 14px 18px;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            color: var(--text-primary);
-            font-size: 1rem;
+            width: 100%; padding: 14px 18px; background: var(--bg-secondary);
+            border: 1px solid var(--border); border-radius: 12px;
+            color: var(--text-primary); font-size: 1rem;
         }
-
-        .form-group input:focus {
-            outline: none;
-            border-color: var(--accent);
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin-bottom: 30px;
-        }
-
-        .stat-card {
-            background: var(--bg-card);
-            padding: 25px 20px;
-            border-radius: 16px;
-            text-align: center;
-            border: 1px solid var(--border);
-        }
-
-        .stat-value {
-            font-size: 2.2rem;
-            font-weight: 700;
-            color: var(--accent);
-            margin-bottom: 5px;
-        }
-
-        .stat-label {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-        }
-
-        .admin-section {
-            background: var(--bg-card);
-            border-radius: 20px;
-            padding: 25px;
-            margin-bottom: 25px;
-            border: 1px solid var(--border);
-        }
-
-        .admin-section h3 {
-            margin-bottom: 20px;
-            font-size: 1.3rem;
-        }
-
-        .vote-list {
-            max-height: 400px;
-            overflow-y: auto;
-        }
-
-        .vote-item {
-            padding: 15px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .vote-item:last-child {
-            border-bottom: none;
-        }
-
-        .vote-question {
-            font-weight: 600;
-            margin-bottom: 5px;
-        }
-
-        .vote-stats {
-            color: var(--text-secondary);
-            font-size: 0.85rem;
-        }
-
-        .reset-btn {
-            background: #ff4444;
-            width: 100%;
-            margin-top: 10px;
-        }
-
-        .reset-btn:hover {
-            background: #cc0000;
-        }
-
-        /* Animations */
-        @keyframes slideUp {
-            from { 
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to { 
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes popIn {
-            from { 
-                opacity: 0;
-                transform: scale(0);
-            }
-            to { 
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
-
-        @keyframes bounce {
-            0%, 100% { transform: translateX(-50%) translateY(0); }
-            50% { transform: translateX(-50%) translateY(-8px); }
-        }
-
-        @keyframes floatUp {
-            0% {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-            100% {
-                opacity: 0;
-                transform: translateY(-100px) scale(1.5);
-            }
-        }
-
-        /* Mobile Responsive */
+        .form-group input:focus { outline: none; border-color: var(--accent); }
+        .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 30px; }
+        .stat-card { background: var(--bg-card); padding: 25px 20px; border-radius: 16px; text-align: center; border: 1px solid var(--border); }
+        .stat-value { font-size: 2.2rem; font-weight: 700; color: var(--accent); margin-bottom: 5px; }
+        .stat-label { color: var(--text-secondary); font-size: 0.9rem; }
+        .admin-section { background: var(--bg-card); border-radius: 20px; padding: 25px; margin-bottom: 25px; border: 1px solid var(--border); }
+        .admin-section h3 { margin-bottom: 20px; font-size: 1.3rem; }
+        .vote-list { max-height: 400px; overflow-y: auto; }
+        .vote-item { padding: 15px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .vote-item:last-child { border-bottom: none; }
+        .vote-question { font-weight: 600; margin-bottom: 5px; }
+        .vote-stats { color: var(--text-secondary); font-size: 0.85rem; }
+        .reset-btn { background: #ff4444; width: 100%; margin-top: 10px; }
+        .reset-btn:hover { background: #cc0000; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes popIn { from { opacity: 0; transform: scale(0); } to { opacity: 1; transform: scale(1); } }
+        @keyframes bounce { 0%, 100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(-8px); } }
+        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(-100px) scale(1.5); } }
         @media (max-width: 768px) {
-            .logo {
-                font-size: 3.5rem;
-            }
-
-            .landing h1 {
-                font-size: 1.6rem;
-            }
-
-            .landing p {
-                font-size: 1rem;
-            }
-
-            .btn {
-                padding: 14px 30px;
-                font-size: 1rem;
-            }
-
-            .question-text {
-                font-size: 1.4rem;
-            }
-
-            .question-emoji {
-                font-size: 3.5rem;
-            }
-
-            .friends-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 10px;
-            }
-
-            .friend-card {
-                padding: 18px 12px;
-            }
-
-            .friend-avatar {
-                width: 50px;
-                height: 50px;
-            }
-
-            .friend-avatar .avatar-initial {
-                font-size: 1.5rem;
-            }
-
-            .container {
-                padding: 90px 15px 40px;
-            }
-
-            .nav-links a {
-                padding: 6px 12px;
-                font-size: 0.85rem;
-            }
+            .logo { font-size: 3.5rem; } .landing h1 { font-size: 1.6rem; } .landing p { font-size: 1rem; }
+            .btn { padding: 14px 30px; font-size: 1rem; } .question-text { font-size: 1.4rem; }
+            .question-emoji { font-size: 3.5rem; } .friends-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+            .friend-card { padding: 18px 12px; } .friend-avatar { width: 50px; height: 50px; }
+            .friend-avatar .avatar-initial { font-size: 1.5rem; } .container { padding: 90px 15px 40px; }
+            .nav-links a { padding: 6px 12px; font-size: 0.85rem; }
         }
-
-        .hidden {
-            display: none !important;
-        }
-
-        .page {
-            display: none;
-            animation: fadeIn 0.4s ease;
-        }
-
-        .page.active {
-            display: block;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
+        .hidden { display: none !important; }
+        .page { display: none; animation: fadeIn 0.4s ease; }
+        .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         .emoji-reaction {
-            position: fixed;
-            font-size: 2.5rem;
-            pointer-events: none;
-            animation: floatUp 1s ease forwards;
-            z-index: 9999;
+            position: fixed; font-size: 2.5rem; pointer-events: none;
+            animation: floatUp 1s ease forwards; z-index: 9999;
         }
-
         .admin-badge {
-            background: var(--accent);
-            color: white;
-            padding: 3px 10px;
-            border-radius: 12px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            margin-left: 8px;
+            background: var(--accent); color: white; padding: 3px 10px;
+            border-radius: 12px; font-size: 0.75rem; font-weight: 700; margin-left: 8px;
         }
+        #connectionStatus {
+            position: fixed; top: 70px; right: 20px; padding: 8px 16px; border-radius: 20px;
+            font-size: 0.85rem; font-weight: 500; z-index: 999; display: none;
+        }
+        #connectionStatus.connected { background: var(--success); color: #000; display: block; }
+        #connectionStatus.disconnected { background: #ff6b6b; color: white; display: block; }
     </style>
 </head>
-
 <body>
     <div class="bg-image"></div>
     <div class="bg-overlay"></div>
+    <div id="connectionStatus"></div>
 
     <!-- Landing Page -->
     <div class="landing" id="landingPage">
@@ -760,9 +230,7 @@
     <div class="container hidden" id="mainContainer">
         <!-- Question Feed Page -->
         <div class="page active" id="feedPage">
-            <div class="question-feed" id="questionFeed">
-                <!-- Questions will be generated here -->
-            </div>
+            <div class="question-feed" id="questionFeed"></div>
             <div class="swipe-indicator">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
@@ -781,81 +249,67 @@
                 </div>
                 <button class="btn" onclick="adminLogin()" style="width: 100%;">Login</button>
             </div>
-
             <div id="adminDashboard" class="hidden">
                 <h2 style="margin-bottom: 25px; font-size: 1.8rem;">Admin Dashboard</h2>
-                
                 <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-value" id="totalVotes">0</div>
-                        <div class="stat-label">Нийт Votes</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value" id="totalQuestions">0</div>
-                        <div class="stat-label">Асуултууд</div>
-                    </div>
+                    <div class="stat-card"><div class="stat-value" id="totalVotes">0</div><div class="stat-label">Нийт Votes</div></div>
+                    <div class="stat-card"><div class="stat-value" id="totalQuestions">0</div><div class="stat-label">Асуултууд</div></div>
                 </div>
-
-                <!-- Leaderboard - Admin Only -->
                 <div class="admin-section">
                     <h3>🏆 Leaderboard</h3>
-                    <div id="adminLeaderboard">
-                        <!-- Leaderboard will be generated here -->
-                    </div>
+                    <div id="adminLeaderboard"></div>
                 </div>
-
                 <div class="admin-section">
                     <h3>📊 Vote Statistics</h3>
-                    <div class="vote-list" id="voteList">
-                        <!-- Vote list will be generated here -->
-                    </div>
+                    <div class="vote-list" id="voteList"></div>
                 </div>
-
                 <div class="admin-section">
                     <h3>➕ Add New Question</h3>
-                    <div class="form-group">
-                        <input type="text" id="newQuestion" placeholder="Асуулт бичих...">
-                    </div>
-                    <div class="form-group">
-                        <input type="text" id="newQuestionEmoji" placeholder="Emoji (жишээ: 🍺)">
-                    </div>
+                    <div class="form-group"><input type="text" id="newQuestion" placeholder="Асуулт бичих..."></div>
+                    <div class="form-group"><input type="text" id="newQuestionEmoji" placeholder="Emoji (жишээ: 🍺)"></div>
                     <button class="btn" onclick="addQuestion()" style="width: 100%;">Add Question</button>
                 </div>
-
-                <button class="btn reset-btn" onclick="resetAllVotes()">
-                    🗑️ Бүх Vote-уудыг цэвэрлэх
-                </button>
-
-                <button class="btn btn-secondary" onclick="adminLogout()" style="width: 100%; margin-top: 10px;">
-                    Logout
-                </button>
+                <button class="btn reset-btn" onclick="resetAllVotes()">🗑️ Бүх Vote-уудыг цэвэрлэх</button>
+                <button class="btn btn-secondary" onclick="adminLogout()" style="width: 100%; margin-top: 10px;">Logout</button>
             </div>
         </div>
     </div>
 
-     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    <!-- 🔥 Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 
     <script>
-        // Data
-        /** Filenames inside the `images/` folder (same names as disk files). */
-        const MEMBER_IMG_DIR = 'images/';
+        // 🔥 Firebase Configuration - REPLACE WITH YOUR ACTUAL VALUES
+        const firebaseConfig = {
+  apiKey: "AIzaSyBGTPmuwsIne5nFv5qcqgp3SLBFd31fLV4",
+  authDomain: "garret-9cbae.firebaseapp.com",
+  databaseURL: "https://garret-9cbae-default-rtdb.firebaseio.com",
+  projectId: "garret-9cbae",
+  storageBucket: "garret-9cbae.firebasestorage.app",
+  messagingSenderId: "405640770546",
+  appId: "1:405640770546:web:dc6046322c95fd44bdf16b",
+  measurementId: "G-P762PYMB8L"
+};
 
+        // 🔥 Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // 🔥 Global flags
+        let firebaseListenerAttached = false;
+        let remoteAvailable = false;
+
+        // Data
+        const MEMBER_IMG_DIR = 'images/';
         const friends = [
-            { id: 1, name: 'Yesu', image: 'yesu.jpg' },
-            { id: 2, name: 'Tugsuu', image: 'tugsuu.jpg' },
-            { id: 3, name: 'Turuu', image: 'turuu.jpg' },
-            { id: 4, name: 'Uulaa', image: 'uula.jpg' },
-            { id: 5, name: 'Shinee', image: 'shinee.jpg' },
-            { id: 6, name: 'Maral', image: 'maral.jpg' },
-            { id: 7, name: 'Maralgoo', image: 'maralgoo.jpg' },
-            { id: 8, name: 'Anu jijg', image: 'anu_jijg.jpg' },
-            { id: 9, name: 'Anu tom', image: 'anu_tom.jpg' },
-            { id: 10, name: 'Nomin', image: 'nomin.jpg' },
-            { id: 11, name: 'Sender', image: 'sender.jpg' },
-            { id: 12, name: 'Misheel', image: 'misheel.jpg' },
-            { id: 13, name: 'Enguun', image: 'enguun.jpg' },
-            { id: 14, name: 'Enja', image: 'enja.jpg' }
+            { id: 1, name: 'Yesu', image: 'yesu.jpg' }, { id: 2, name: 'Tugsuu', image: 'tugsuu.jpg' },
+            { id: 3, name: 'Turuu', image: 'turuu.jpg' }, { id: 4, name: 'Uulaa', image: 'uula.jpg' },
+            { id: 5, name: 'Shinee', image: 'shinee.jpg' }, { id: 6, name: 'Maral', image: 'maral.jpg' },
+            { id: 7, name: 'Maralgoo', image: 'maralgoo.jpg' }, { id: 8, name: 'Anu jijg', image: 'anu_jijg.jpg' },
+            { id: 9, name: 'Anu tom', image: 'anu_tom.jpg' }, { id: 10, name: 'Nomin', image: 'nomin.jpg' },
+            { id: 11, name: 'Sender', image: 'sender.jpg' }, { id: 12, name: 'Misheel', image: 'misheel.jpg' },
+            { id: 13, name: 'Enguun', image: 'enguun.jpg' }, { id: 14, name: 'Enja', image: 'enja.jpg' }
         ];
 
         function memberAvatarSrc(friend) {
@@ -892,119 +346,90 @@
         let votes = {};
         let localSelectedVotes = {};
         let remoteCounts = {};
-        let remoteAvailable = false;
         let isAdmin = false;
 
         const LOCAL_VOTE_KEY = 'noballs_votes';
         const LOCAL_SELECTED_KEY = 'noballs_selected';
         const LOCAL_QUESTIONS_KEY = 'noballs_questions';
-        /** Public counter API (original api.countapi.xyz is often dead). Same idea: one counter per question+friend. */
-        const COUNTAPI_BASE = 'https://countapi.mileshilliard.com/api/v1';
-        const REMOTE_NAMESPACE = 'kudafintsi_poll';
-
         const LOCAL_CLIENT_ID_KEY = 'noballs_client_id';
         const LOCAL_LAST_SUBMIT_KEY = 'noballs_last_submit';
-
-        /** Optional: POST JSON when user taps Submit (`{ payload: {...} }`). Leave URL empty to skip server submit. */
         const SUBMIT_URL = '';
         const SUBMIT_KEY = '';
 
-        function remoteCounterKey(questionId, friendId) {
-    // Use a more unique, URL-safe key format
-    return `garret_poll_${questionId}_${friendId}_${new Date().getFullYear()}`;
-}
-
-        // Initialize
-        function init() {
-    loadData();
-    
-    // 🔥 CHANGED: Use Firebase instead of countapi
-    loadFirebaseVotes().then(() => {
-        renderQuestions();
-        if (remoteAvailable) {
-            updateAdminStats();
-            renderAdminLeaderboard();
-        }
-    });
-    
-    // Keep the visibilitychange listener
-    document.addEventListener('visibilitychange', async () => {
-        if (document.visibilityState !== 'visible') return;
-        await loadFirebaseVotes(); // Refresh from Firebase
-        if (remoteAvailable) {
-            updateAllVoteUI();
-            updateAdminStats();
-            renderAdminLeaderboard();
-        }
-    });
-}
-
-        // Local Storage
-        function createEmptyVotes() {
-            const emptyVotes = {};
-            questions.forEach(q => {
-                emptyVotes[q.id] = {};
-                friends.forEach(f => {
-                    emptyVotes[q.id][f.id] = 0;
+        // 🔥 Load votes from Firebase
+        async function loadFirebaseVotes() {
+            try {
+                const snapshot = await db.ref('votes').once('value');
+                const data = snapshot.val() || {};
+                questions.forEach(q => {
+                    friends.forEach(f => {
+                        const key = `${q.id}_${f.id}`;
+                        remoteCounts[q.id][f.id] = Number(data[key]) || 0;
+                    });
                 });
-            });
-            return emptyVotes;
+                remoteAvailable = true;
+                updateConnectionStatus(true);
+                console.log('✅ Firebase votes loaded');
+            } catch (error) {
+                console.warn('❌ Failed to load Firebase votes:', error);
+                remoteAvailable = false;
+                updateConnectionStatus(false);
+            }
         }
 
+        function updateConnectionStatus(connected) {
+            const el = document.getElementById('connectionStatus');
+            if (connected) {
+                el.textContent = '🟢 Live sync';
+                el.className = 'connected';
+            } else {
+                el.textContent = '🔴 Offline mode';
+                el.className = 'disconnected';
+            }
+        }
+
+        // Local Storage helpers
+        function createEmptyVotes() {
+            const empty = {};
+            questions.forEach(q => { empty[q.id] = {}; friends.forEach(f => { empty[q.id][f.id] = 0; }); });
+            return empty;
+        }
         function createEmptySelectedVotes() {
             const selected = {};
-            questions.forEach(q => {
-                selected[q.id] = null;
-            });
+            questions.forEach(q => { selected[q.id] = null; });
             return selected;
         }
-
         function loadData() {
             const savedVotes = localStorage.getItem(LOCAL_VOTE_KEY);
             const savedSelected = localStorage.getItem(LOCAL_SELECTED_KEY);
             const savedQuestions = localStorage.getItem(LOCAL_QUESTIONS_KEY);
-
-            if (savedQuestions) {
-                questions = JSON.parse(savedQuestions);
-            }
-
+            if (savedQuestions) questions = JSON.parse(savedQuestions);
             votes = createEmptyVotes();
             localSelectedVotes = createEmptySelectedVotes();
             remoteCounts = createEmptyVotes();
-
             if (savedVotes) {
                 try {
-                    const parsedVotes = JSON.parse(savedVotes);
-                    Object.keys(parsedVotes).forEach(qid => {
+                    const parsed = JSON.parse(savedVotes);
+                    Object.keys(parsed).forEach(qid => {
                         if (!votes[qid]) return;
-                        Object.keys(parsedVotes[qid]).forEach(fid => {
+                        Object.keys(parsed[qid]).forEach(fid => {
                             if (votes[qid][fid] !== undefined) {
-                                votes[qid][fid] = Number(parsedVotes[qid][fid]) || 0;
-                                if (votes[qid][fid] > 0) {
-                                    localSelectedVotes[qid] = Number(fid);
-                                }
+                                votes[qid][fid] = Number(parsed[qid][fid]) || 0;
+                                if (votes[qid][fid] > 0) localSelectedVotes[qid] = Number(fid);
                             }
                         });
                     });
-                } catch (error) {
-                    console.warn('Invalid saved votes, resetting to zero.', error);
-                }
+                } catch (e) { console.warn('Invalid saved votes', e); }
             }
-
             if (savedSelected) {
                 try {
-                    const parsedSelected = JSON.parse(savedSelected);
-                    Object.keys(parsedSelected).forEach(qid => {
-                        if (localSelectedVotes[qid] !== undefined) {
-                            localSelectedVotes[qid] = Number(parsedSelected[qid]);
-                        }
+                    const parsed = JSON.parse(savedSelected);
+                    Object.keys(parsed).forEach(qid => {
+                        if (localSelectedVotes[qid] !== undefined) localSelectedVotes[qid] = Number(parsed[qid]);
                     });
-                } catch (error) {
-                    console.warn('Invalid selected vote state.', error);
-                }
+                } catch (e) { console.warn('Invalid selected state', e); }
             }
         }
-
         function saveData() {
             localStorage.setItem(LOCAL_VOTE_KEY, JSON.stringify(votes));
             localStorage.setItem(LOCAL_SELECTED_KEY, JSON.stringify(localSelectedVotes));
@@ -1016,10 +441,8 @@
             document.getElementById('landingPage').classList.add('hidden');
             document.getElementById('mainNav').classList.remove('hidden');
             document.getElementById('mainContainer').classList.remove('hidden');
-
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
-
             if (pageName === 'landing') {
                 document.getElementById('landingPage').classList.remove('hidden');
                 document.getElementById('mainNav').classList.add('hidden');
@@ -1033,19 +456,13 @@
             }
         }
 
-        // Render Questions
+        // Render
         function renderQuestions() {
             const feed = document.getElementById('questionFeed');
             feed.innerHTML = '';
-
-            questions.forEach((question, index) => {
-                const card = createQuestionCard(question, index);
-                feed.appendChild(card);
-            });
-
+            questions.forEach((q, i) => feed.appendChild(createQuestionCard(q, i)));
             appendVoteSubmitFooter();
         }
-
         function appendVoteSubmitFooter() {
             const feed = document.getElementById('questionFeed');
             const footer = document.createElement('div');
@@ -1055,8 +472,7 @@
                     <p class="vote-submit-hint">Дууссаны дараа дарна уу.</p>
                     <button type="button" class="btn vote-submit-btn" id="submitVotesBtn">Submit</button>
                     <p class="vote-submit-status" id="submitVotesStatus" role="status"></p>
-                </div>
-            `;
+                </div>`;
             feed.appendChild(footer);
             document.getElementById('submitVotesBtn').addEventListener('click', submitVotes);
         }
@@ -1065,32 +481,21 @@
             let id = localStorage.getItem(LOCAL_CLIENT_ID_KEY);
             if (!id) {
                 id = (typeof crypto !== 'undefined' && crypto.randomUUID)
-                    ? crypto.randomUUID()
-                    : `c_${Date.now()}_${Math.random().toString(36).slice(2, 12)}`;
+                    ? crypto.randomUUID() : `c_${Date.now()}_${Math.random().toString(36).slice(2,12)}`;
                 localStorage.setItem(LOCAL_CLIENT_ID_KEY, id);
             }
             return id;
         }
 
         function buildVoteSubmissionPayload() {
-            const selections = questions.map(q => {
-                const fid = localSelectedVotes[q.id];
-                const friend = fid ? friends.find(f => f.id === Number(fid)) : null;
-                return {
-                    questionId: q.id,
-                    questionText: q.text,
-                    emoji: q.emoji,
-                    friendId: fid != null ? Number(fid) : null,
-                    friendName: friend ? friend.name : null
-                };
-            });
-
             return {
                 submittedAt: new Date().toISOString(),
                 clientId: getOrCreateClientId(),
-                pollNamespace: REMOTE_NAMESPACE,
-                remoteCounterSync: remoteAvailable,
-                selections
+                selections: questions.map(q => {
+                    const fid = localSelectedVotes[q.id];
+                    const friend = fid ? friends.find(f => f.id === Number(fid)) : null;
+                    return { questionId: q.id, questionText: q.text, emoji: q.emoji, friendId: fid, friendName: friend?.name };
+                })
             };
         }
 
@@ -1098,474 +503,229 @@
             const btn = document.getElementById('submitVotesBtn');
             const statusEl = document.getElementById('submitVotesStatus');
             if (!btn || !statusEl) return;
-
-            statusEl.classList.remove('ok', 'err');
-            const url = (SUBMIT_URL || '').trim();
-
-            if (!url) {
-                statusEl.classList.add('err');
-                statusEl.textContent = 'Илгээх тохиргоо хийгээгүй байна.';
-                return;
-            }
-
+            statusEl.classList.remove('ok','err');
+            const url = (SUBMIT_URL||'').trim();
+            if (!url) { statusEl.classList.add('err'); statusEl.textContent = 'Илгээх тохиргоо хийгээгүй байна.'; return; }
             const missing = questions.filter(q => localSelectedVotes[q.id] == null);
-            if (missing.length > 0) {
-                const ok = confirm(`Чи ${missing.length} асуултад сонголт хийгээгүй байна. Гэсэн ч илгээх үү?`);
-                if (!ok) return;
-            }
-            if (remoteAvailable) {
-    // Sync local selections to Firebase for consistency
-    questions.forEach(q => {
-        const fid = localSelectedVotes[q.id];
-        if (fid) {
-            db.ref(`votes/${q.id}_${fid}`).transaction(current => (current || 0) + 1);
-        }
-    });
-}
-
-            const payload = buildVoteSubmissionPayload();
-            const body = JSON.stringify({ payload });
-
-            btn.disabled = true;
-            statusEl.textContent = 'Илгээж байна...';
-
+            if (missing.length > 0 && !confirm(`Чи ${missing.length} асуултад сонголт хийгээгүй байна. Гэсэн ч илгээх үү?`)) return;
+            
+            btn.disabled = true; statusEl.textContent = 'Илгээж байна...';
             try {
+                const payload = buildVoteSubmissionPayload();
                 const headers = { 'Content-Type': 'application/json' };
-                const key = (SUBMIT_KEY || '').trim();
-                if (key) {
-                    headers['apikey'] = key;
-                    headers['Authorization'] = `Bearer ${key}`;
-                    headers['Prefer'] = 'return=minimal';
-                }
-
-                const response = await fetch(url, { method: 'POST', mode: 'cors', headers, body });
-                if (!response.ok) {
-                    const errText = await response.text().catch(() => '');
-                    throw new Error(errText || `HTTP ${response.status}`);
-                }
-
+                const key = (SUBMIT_KEY||'').trim();
+                if (key) { headers['apikey'] = key; headers['Authorization'] = `Bearer ${key}`; headers['Prefer'] = 'return=minimal'; }
+                const res = await fetch(url, { method: 'POST', mode: 'cors', headers, body: JSON.stringify({ payload }) });
+                if (!res.ok) throw new Error(await res.text().catch(()=>`HTTP ${res.status}`));
                 localStorage.setItem(LOCAL_LAST_SUBMIT_KEY, payload.submittedAt);
-                statusEl.classList.add('ok');
-                statusEl.textContent = 'Амжилттай илгээгдлээ ✅';
+                statusEl.classList.add('ok'); statusEl.textContent = 'Амжилттай илгээгдлээ ✅';
             } catch (err) {
                 console.warn('Submit failed', err);
-                statusEl.classList.add('err');
-                statusEl.textContent = 'Илгээхэд алдаа: ' + (err && err.message ? err.message : String(err));
-            } finally {
-                btn.disabled = false;
-            }
+                statusEl.classList.add('err'); statusEl.textContent = 'Илгээхэд алдаа: ' + (err?.message || String(err));
+            } finally { btn.disabled = false; }
         }
 
         function createQuestionCard(question, index) {
-            const selectedFriendId = localSelectedVotes[question.id];
+            const selected = localSelectedVotes[question.id];
             const card = document.createElement('div');
             card.className = 'question-card';
             card.innerHTML = `
                 <div class="question-header">
-                    <span class="question-number">Асуулт ${index + 1}</span>
+                    <span class="question-number">Асуулт ${index+1}</span>
                     <div class="question-emoji">${question.emoji}</div>
                     <div class="question-text">${question.text}</div>
                 </div>
                 <div class="friends-grid" id="friends-${question.id}">
-                    ${friends.map(friend => `
-                        <div class="friend-card ${selectedFriendId === friend.id ? 'voted' : ''}" onclick="vote(${question.id}, ${friend.id}, event)">
-                            <div class="friend-avatar">${memberAvatarHtml(friend)}</div>
-                            <div class="friend-name">${friend.name}</div>
-                            ${getVoteBadgeHtml(question.id, friend.id)}
-                        </div>
-                    `).join('')}
-                </div>
-            `;
+                    ${friends.map(f => `
+                        <div class="friend-card ${selected===f.id?'voted':''}" onclick="vote(${question.id},${f.id},event)">
+                            <div class="friend-avatar">${memberAvatarHtml(f)}</div>
+                            <div class="friend-name">${f.name}</div>
+                            ${getVoteBadgeHtml(question.id, f.id)}
+                        </div>`).join('')}
+                </div>`;
             return card;
         }
 
-        async function loadFirebaseVotes() {
-    try {
-        const snapshot = await db.ref('votes').once('value');
-        const data = snapshot.val() || {};
-        
-        questions.forEach(q => {
-            friends.forEach(f => {
-                const key = `${q.id}_${f.id}`;
-                remoteCounts[q.id][f.id] = Number(data[key]) || 0;
-            });
-        });
-        remoteAvailable = true;
-        console.log('✅ Firebase votes loaded');
-    } catch (error) {
-        console.warn('❌ Failed to load Firebase votes:', error);
-        remoteAvailable = false;
-    }
-}
-
-        async function loadRemoteCount(questionId, friendId) {
-    const key = encodeURIComponent(remoteCounterKey(questionId, friendId));
-    const url = `${COUNTAPI_BASE}/get/${key}`;
-    
-    try {
-        const response = await fetch(url, { 
-            method: 'GET', 
-            mode: 'cors',
-            cache: 'no-store' // Prevent cached responses
-        });
-        
-        if (response.status === 404) {
-            remoteCounts[questionId][friendId] = 0;
-            return;
+        // Vote counting
+        function getVoteCount(qid, fid) {
+            const src = remoteAvailable ? remoteCounts : votes;
+            return (src[qid]?.[fid]) ? Number(src[qid][fid]) : 0;
         }
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        
-        const data = await response.json();
-        remoteCounts[questionId][friendId] = Number(data.value || 0);
-    } catch (error) {
-        console.warn(`Failed to load remote count for ${questionId}/${friendId}:`, error);
-        remoteCounts[questionId][friendId] = 0; // Fallback to 0
-    }
-}
-
-        function getVoteCount(questionId, friendId) {
-            const source = remoteAvailable ? remoteCounts : votes;
-            return (source[questionId] && source[questionId][friendId]) ? Number(source[questionId][friendId]) : 0;
+        function getQuestionTotal(qid) {
+            const src = remoteAvailable ? remoteCounts : votes;
+            return Object.values(src[qid]||{}).reduce((s,v)=>s+Number(v||0),0);
         }
-
-        function getQuestionTotal(questionId) {
-            const source = remoteAvailable ? remoteCounts : votes;
-            return Object.values(source[questionId] || {}).reduce((sum, value) => sum + Number(value || 0), 0);
+        function calculatePercentage(qid, fid) {
+            const total = getQuestionTotal(qid);
+            return total === 0 ? 0 : Math.round((getVoteCount(qid,fid)/total)*100);
         }
-
-        function calculatePercentage(questionId, friendId) {
-            const total = getQuestionTotal(questionId);
-            if (total === 0) return 0;
-            return Math.round((getVoteCount(questionId, friendId) / total) * 100);
-        }
-
-        function getVoteBadgeHtml(questionId, friendId) {
-            const count = getVoteCount(questionId, friendId);
+        function getVoteBadgeHtml(qid, fid) {
+            const count = getVoteCount(qid, fid);
             if (!count) return '';
-
-            if (remoteAvailable) {
-                return `<div class="vote-badge">${count}</div>`;
-            }
-
-            return `<div class="vote-badge">${calculatePercentage(questionId, friendId)}%</div>`;
+            return `<div class="vote-badge">${remoteAvailable ? count : calculatePercentage(qid,fid)+'%'}</div>`;
         }
-
-        function updateAllVoteUI() {
-            questions.forEach(q => updateVoteUI(q.id));
-        }
-
-        function updateVoteUI(questionId) {
-            const container = document.getElementById(`friends-${questionId}`);
+        function updateAllVoteUI() { questions.forEach(q => updateVoteUI(q.id)); }
+        function updateVoteUI(qid) {
+            const container = document.getElementById(`friends-${qid}`);
             if (!container) return;
-
-            const cards = container.querySelectorAll('.friend-card');
-            cards.forEach((card, index) => {
-                const friend = friends[index];
-                const count = getVoteCount(questionId, friend.id);
-                const percentage = calculatePercentage(questionId, friend.id);
-                let badgeEl = card.querySelector('.vote-badge');
-                if (badgeEl) badgeEl.remove();
-
+            container.querySelectorAll('.friend-card').forEach((card, idx) => {
+                const f = friends[idx];
+                const count = getVoteCount(qid, f.id);
+                let badge = card.querySelector('.vote-badge');
+                if (badge) badge.remove();
                 if (count > 0) {
                     const div = document.createElement('div');
                     div.className = 'vote-badge';
-                    div.textContent = remoteAvailable ? count : `${percentage}%`;
+                    div.textContent = remoteAvailable ? count : `${calculatePercentage(qid,f.id)}%`;
                     card.appendChild(div);
                 }
-
-                card.classList.toggle('voted', localSelectedVotes[questionId] === friend.id);
+                card.classList.toggle('voted', localSelectedVotes[qid] === f.id);
             });
         }
 
-        // Voting
+        // 🔥 Voting with Firebase
         async function vote(questionId, friendId, event) {
-    // Show emoji animation
-    const emojis = ['🔥', '💯', '😂', '🎯', '✨', '🎉'];
-    const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
-    createEmojiReaction(event.clientX, event.clientY, randomEmoji);
+            const emojis = ['🔥','💯','😂','🎯','✨','🎉'];
+            createEmojiReaction(event.clientX, event.clientY, emojis[Math.floor(Math.random()*emojis.length)]);
+            const prev = localSelectedVotes[questionId];
+            if (prev === friendId) return;
+            localSelectedVotes[questionId] = friendId;
 
-    const prev = localSelectedVotes[questionId];
-    if (prev === friendId) return; // Already selected
+            // Update Firebase
+            try {
+                const updates = {};
+                const key = (qid,fid) => `${qid}_${fid}`;
+                if (prev) updates[key(questionId,prev)] = firebase.database.ServerValue.increment(-1);
+                updates[key(questionId,friendId)] = firebase.database.ServerValue.increment(1);
+                await db.ref('votes').update(updates);
+            } catch (err) {
+                console.warn('Firebase update failed, using local fallback', err);
+                applyLocalVote(questionId, prev, friendId);
+            }
 
-    localSelectedVotes[questionId] = friendId;
-
-    // 🔥 Update Firebase with atomic increments
-    try {
-        const updates = {};
-        const voteKey = (qid, fid) => `${qid}_${fid}`;
-        
-        if (prev) {
-            updates[voteKey(questionId, prev)] = firebase.database.ServerValue.increment(-1);
+            // Attach real-time listener ONCE
+            if (!firebaseListenerAttached) {
+                firebaseListenerAttached = true;
+                db.ref('votes').on('value', snap => {
+                    const data = snap.val() || {};
+                    questions.forEach(q => friends.forEach(f => {
+                        remoteCounts[q.id][f.id] = Number(data[`${q.id}_${f.id}`]) || 0;
+                    }));
+                    updateAllVoteUI();
+                    if (isAdmin) { updateAdminStats(); renderAdminLeaderboard(); }
+                });
+                console.log('🔗 Firebase listener attached');
+            }
+            saveData();
+            updateVoteUI(questionId);
         }
-        updates[voteKey(questionId, friendId)] = firebase.database.ServerValue.increment(1);
-        
-        await db.ref('votes').update(updates);
-    } catch (error) {
-        console.warn('Firebase update failed, using local fallback:', error);
-        applyLocalVote(questionId, prev, friendId);
-    }
 
-    // 🔥 Attach real-time listener ONCE
-    if (!firebaseListenerAttached) {
-        firebaseListenerAttached = true;
-        db.ref('votes').on('value', (snapshot) => {
-            const data = snapshot.val() || {};
-            questions.forEach(q => {
-                friends.forEach(f => {
-                    const key = `${q.id}_${f.id}`;
-                    remoteCounts[q.id][f.id] = Number(data[key]) || 0;
-                });
-            });
-            updateAllVoteUI();
-            if (isAdmin) {
-                updateAdminStats();
-                renderAdminLeaderboard();
-            }
-        });
-        console.log('🔗 Firebase real-time listener attached');
-    }
-
-    saveData(); // Keep localStorage backup
-    updateVoteUI(questionId);
-}
-
-        function applyLocalVote(questionId, previousFriendId, friendId) {
-            if (!votes[questionId]) {
-                votes[questionId] = {};
-                friends.forEach(f => {
-                    votes[questionId][f.id] = 0;
-                });
-            }
-
-            if (previousFriendId) {
-                votes[questionId][previousFriendId] = Math.max(0, votes[questionId][previousFriendId] - 1);
-            }
-            votes[questionId][friendId] = (votes[questionId][friendId] || 0) + 1;
+        function applyLocalVote(qid, prev, fid) {
+            if (!votes[qid]) { votes[qid] = {}; friends.forEach(f => votes[qid][f.id]=0); }
+            if (prev) votes[qid][prev] = Math.max(0, votes[qid][prev]-1);
+            votes[qid][fid] = (votes[qid][fid]||0) + 1;
             saveData();
         }
 
-        function createEmojiReaction(x, y, emoji) {
+        function createEmojiReaction(x,y,emoji) {
             const el = document.createElement('div');
-            el.className = 'emoji-reaction';
-            el.textContent = emoji;
-            el.style.left = x + 'px';
-            el.style.top = y + 'px';
+            el.className = 'emoji-reaction'; el.textContent = emoji;
+            el.style.left = x+'px'; el.style.top = y+'px';
             document.body.appendChild(el);
-
-            setTimeout(() => el.remove(), 1000);
+            setTimeout(()=>el.remove(),1000);
         }
 
-        async function withRemoteRetry(fn, attempts = 3) {
-            let lastErr;
-            for (let i = 0; i < attempts; i++) {
-                try {
-                    return await fn();
-                } catch (e) {
-                    lastErr = e;
-                    await new Promise(r => setTimeout(r, 200 * (i + 1)));
-                }
-            }
-            throw lastErr;
-        }
-
-        async function incrementRemoteCount(questionId, friendId) {
-            const key = remoteCounterKey(questionId, friendId);
-            const url = `${COUNTAPI_BASE}/hit/${encodeURIComponent(key)}`;
-            const response = await fetch(url, { method: 'GET', mode: 'cors' });
-            if (!response.ok) throw new Error('Remote increment failed');
-            const data = await response.json();
-            remoteCounts[questionId][friendId] = Number(data.value || 0);
-        }
-
-        /** Replacement API has no /dec; read current then set to max(0, n-1). */
-        async function decrementRemoteCount(questionId, friendId) {
-            const key = remoteCounterKey(questionId, friendId);
-            const getUrl = `${COUNTAPI_BASE}/get/${encodeURIComponent(key)}`;
-            const getResp = await fetch(getUrl, { method: 'GET', mode: 'cors' });
-            let current = 0;
-            if (getResp.status === 404) {
-                current = 0;
-            } else if (!getResp.ok) {
-                throw new Error('Remote get for decrement failed');
-            } else {
-                const getData = await getResp.json();
-                current = Number(getData.value || 0);
-            }
-            const newVal = Math.max(0, current - 1);
-            const setUrl = `${COUNTAPI_BASE}/set/${encodeURIComponent(key)}?value=${newVal}`;
-            const setResp = await fetch(setUrl, { method: 'GET', mode: 'cors' });
-            if (!setResp.ok) throw new Error('Remote set for decrement failed');
-            const setData = await setResp.json();
-            remoteCounts[questionId][friendId] = Math.max(0, Number(setData.value ?? newVal));
-        }
-
-        // Admin Functions
+        // Admin
         function adminLogin() {
-            const password = document.getElementById('adminPassword').value;
-            if (password === 'admin123') {
+            if (document.getElementById('adminPassword').value === 'admin123') {
                 isAdmin = true;
                 document.getElementById('adminLogin').classList.add('hidden');
                 document.getElementById('adminDashboard').classList.remove('hidden');
-                updateAdminStats();
-                renderAdminLeaderboard();
-            } else {
-                alert('❌ Буруу password!');
-            }
+                updateAdminStats(); renderAdminLeaderboard();
+            } else alert('❌ Буруу password!');
         }
-
         function adminLogout() {
             isAdmin = false;
             document.getElementById('adminLogin').classList.remove('hidden');
             document.getElementById('adminDashboard').classList.add('hidden');
             document.getElementById('adminPassword').value = '';
         }
-
+        function calculateTotalScores() {
+            return friends.map(f => {
+                let score=0, totalVotes=0;
+                questions.forEach(q => { const v=getVoteCount(q.id,f.id); totalVotes+=v; score+=v; });
+                return { friendId: f.id, score, votes: totalVotes };
+            }).sort((a,b)=>b.score-a.score);
+        }
         function renderAdminLeaderboard() {
             const container = document.getElementById('adminLeaderboard');
             container.innerHTML = '';
-
-            const scores = calculateTotalScores();
-            
-            scores.slice(0, 5).forEach((score, index) => {
-                const friend = friends.find(f => f.id === score.friendId);
-                const item = document.createElement('div');
-                item.className = 'leader-item';
-                
-                let rankClass = '';
-                if (index === 0) rankClass = 'gold';
-                else if (index === 1) rankClass = 'silver';
-                else if (index === 2) rankClass = 'bronze';
-                
+            calculateTotalScores().slice(0,5).forEach((s,idx) => {
+                const f = friends.find(x=>x.id===s.friendId);
+                const item = document.createElement('div'); item.className='leader-item';
+                const rankClass = idx===0?'gold':idx===1?'silver':idx===2?'bronze':'';
                 item.innerHTML = `
-                    <div class="leader-rank ${rankClass}">#${index + 1}</div>
-                    <div class="leader-avatar">${memberAvatarHtml(friend)}</div>
+                    <div class="leader-rank ${rankClass}">#${idx+1}</div>
+                    <div class="leader-avatar">${memberAvatarHtml(f)}</div>
                     <div class="leader-info">
-                        <div class="leader-name">${friend.name}</div>
-                        <div class="leader-votes">${score.votes} vote авсан</div>
+                        <div class="leader-name">${f.name}</div>
+                        <div class="leader-votes">${s.votes} vote авсан</div>
                     </div>
-                    <div class="leader-score">${score.score}</div>
-                `;
+                    <div class="leader-score">${s.score}</div>`;
                 container.appendChild(item);
             });
         }
-
-        function calculateTotalScores() {
-            const scores = friends.map(friend => {
-                let score = 0;
-                let totalVotes = 0;
-
-                questions.forEach(q => {
-                    const qVotes = getVoteCount(q.id, friend.id);
-                    totalVotes += qVotes;
-                    score += qVotes;
-                });
-
-                return {
-                    friendId: friend.id,
-                    score: score,
-                    votes: totalVotes
-                };
-            });
-
-            return scores.sort((a, b) => b.score - a.score);
-        }
-
         function updateAdminStats() {
-            let totalVotes = 0;
-            questions.forEach(q => {
-                friends.forEach(f => {
-                    totalVotes += getVoteCount(q.id, f.id);
-                });
-            });
-
-            document.getElementById('totalVotes').textContent = totalVotes;
+            let total=0;
+            questions.forEach(q => friends.forEach(f => total+=getVoteCount(q.id,f.id)));
+            document.getElementById('totalVotes').textContent = total;
             document.getElementById('totalQuestions').textContent = questions.length;
-
-            const voteList = document.getElementById('voteList');
-            voteList.innerHTML = '';
-
+            const list = document.getElementById('voteList'); list.innerHTML='';
             questions.forEach(q => {
-                const item = document.createElement('div');
-                item.className = 'vote-item';
-                
-                let topVoted = '';
-                let maxVotes = 0;
-                
-                friends.forEach(f => {
-                    const count = getVoteCount(q.id, f.id);
-                    if (count > maxVotes) {
-                        maxVotes = count;
-                        topVoted = f.name;
-                    }
-                });
-
-                item.innerHTML = `
-                    <div>
-                        <div class="vote-question">${q.emoji} ${q.text}</div>
-                        <div class="vote-stats">${maxVotes} votes - Top: ${topVoted}</div>
-                    </div>
-                `;
-                voteList.appendChild(item);
+                let top='', max=0;
+                friends.forEach(f => { const c=getVoteCount(q.id,f.id); if(c>max){max=c;top=f.name;} });
+                const item = document.createElement('div'); item.className='vote-item';
+                item.innerHTML = `<div><div class="vote-question">${q.emoji} ${q.text}</div><div class="vote-stats">${max} votes - Top: ${top}</div></div>`;
+                list.appendChild(item);
             });
         }
-
         function addQuestion() {
             const text = document.getElementById('newQuestion').value;
             const emoji = document.getElementById('newQuestionEmoji').value || '❓';
-
-            if (!text) {
-                alert('Асуулт бичнэ үү!');
-                return;
-            }
-
-            const newId = Math.max(...questions.map(q => q.id)) + 1;
-            questions.push({ id: newId, text, emoji });
-            
-            votes[newId] = {};
-            friends.forEach(f => {
-                votes[newId][f.id] = 0;
-            });
-
-            saveData();
-            renderQuestions();
-            updateAdminStats();
-            renderAdminLeaderboard();
-
-            document.getElementById('newQuestion').value = '';
-            document.getElementById('newQuestionEmoji').value = '';
-            
+            if (!text) { alert('Асуулт бичнэ үү!'); return; }
+            const newId = Math.max(...questions.map(q=>q.id))+1;
+            questions.push({id:newId, text, emoji});
+            votes[newId] = {}; friends.forEach(f => votes[newId][f.id]=0);
+            saveData(); renderQuestions(); updateAdminStats(); renderAdminLeaderboard();
+            document.getElementById('newQuestion').value=''; document.getElementById('newQuestionEmoji').value='';
             alert('✅ Асуулт нэмэгдлээ!');
         }
-
-        const firebaseConfig = {
-  apiKey: "AIzaSyBGTPmuwsIne5nFv5qcqgp3SLBFd31fLV4",
-  authDomain: "garret-9cbae.firebaseapp.com",
-  databaseURL: "https://garret-9cbae-default-rtdb.firebaseio.com",
-  projectId: "garret-9cbae",
-  storageBucket: "garret-9cbae.firebasestorage.app",
-  messagingSenderId: "405640770546",
-  appId: "1:405640770546:web:dc6046322c95fd44bdf16b",
-  measurementId: "G-P762PYMB8L"
-};
-
         function resetAllVotes() {
-            if (confirm('Бүх vote-уудыг цэвэрлэх үү?')) {
-                questions.forEach(q => {
-                    votes[q.id] = {};
-                    friends.forEach(f => {
-                        votes[q.id][f.id] = 0;
-                    });
-                });
-                saveData();
+            if (!confirm('Бүх vote-уудыг цэвэрлэх үү?')) return;
+            questions.forEach(q => { votes[q.id]={}; friends.forEach(f => votes[q.id][f.id]=0); });
+            saveData(); renderQuestions(); updateAdminStats(); renderAdminLeaderboard();
+            alert('✅ Бүх vote-ууд цэвэрлэгдлээ!');
+        }
+
+        // Init
+        function init() {
+            loadData();
+            loadFirebaseVotes().then(() => {
                 renderQuestions();
-                updateAdminStats();
-                renderAdminLeaderboard();
-                alert('✅ Бүх vote-ууд цэвэрлэгдлээ!');
-            }
+                if (remoteAvailable) { updateAdminStats(); renderAdminLeaderboard(); }
+            });
+            document.addEventListener('visibilitychange', async () => {
+                if (document.visibilityState !== 'visible') return;
+                await loadFirebaseVotes();
+                if (remoteAvailable) { updateAllVoteUI(); updateAdminStats(); renderAdminLeaderboard(); }
+            });
+            // Connection status check
+            db.ref('.info/connected').on('value', snap => {
+                updateConnectionStatus(snap.val() === true);
+            });
         }
 
         window.onload = init;
     </script>
-   
 </body>
 </html>
