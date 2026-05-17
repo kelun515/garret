@@ -343,6 +343,27 @@
             return `<span class="avatar-initial">${(friend.name || '?')[0].toUpperCase()}</span>`;
         }
 
+        async function loadQuestions() {
+    try {
+        const snap = await db.ref('questions').once('value');
+        const data = snap.val();
+        
+        if (data && Object.keys(data).length > 0) {
+            // Use questions from Firebase
+            questions = Object.values(data).sort((a, b) => a.id - b.id);
+        } else {
+            // First time setup: push defaults to Firebase
+            const savedQ = localStorage.getItem(QUESTIONS_KEY);
+            if (savedQ) questions = JSON.parse(savedQ);
+            questions.forEach(q => db.ref('questions/' + q.id).set(q));
+        }
+        // Cache locally for offline fallback
+        localStorage.setItem(QUESTIONS_KEY, JSON.stringify(questions));
+    } catch (e) {
+        console.warn('Failed to load questions from Firebase', e);
+    }
+}
+
         // 💾 Local Storage
         function loadLocalData() {
             try {
@@ -597,29 +618,52 @@
             }).catch(e => alert('❌ Алдаа: '+e.message));
         }
 
-        function addQuestion() {
-            const text = document.getElementById('newQuestion').value.trim();
-            const emoji = document.getElementById('newQuestionEmoji').value.trim() || '❓';
-            if (!text) return alert('Асуулт бичнэ үү!');
-            questions.push({ id: Math.max(...questions.map(q=>q.id))+1, text, emoji });
-            saveLocalData(); renderQuestions();
+        // 🔹 Add question & sync to Firebase
+function addQuestion() {
+    const text = document.getElementById('newQuestion').value.trim();
+    const emoji = document.getElementById('newQuestionEmoji').value.trim() || '❓';
+    if (!text) return alert('Асуулт бичнэ үү!');
+
+    const newId = Math.max(...questions.map(q => q.id), 0) + 1;
+    const newQ = { id: newId, text, emoji };
+
+    // ✅ Save to Firebase first
+    db.ref('questions/' + newId).set(newQ)
+        .then(() => {
+            // Update local state
+            questions.push(newQ);
+            localStorage.setItem(QUESTIONS_KEY, JSON.stringify(questions));
+            
+            // Refresh UI & Admin
+            renderQuestions();
+            if (isAdmin) { updateAdminStats(); renderAdminLeaderboard(); }
+            
+            // Clear inputs
             document.getElementById('newQuestion').value = '';
             document.getElementById('newQuestionEmoji').value = '';
-            alert('✅ Асуулт нэмэгдлээ!');
-        }
+            alert('✅ Асуулт нэмэгдлээ! Бүх төхөөрөмжид шинэчлэгдэнэ.');
+        })
+        .catch(err => {
+            console.error(err);
+            alert('❌ Алдаа: ' + err.message);
+        });
+}
 
         // 🚀 Initialization
-        window.onload = function() {
-            loadLocalData();
-            renderQuestions();
-            loadFirebaseVotes();
-            db.ref('.info/connected').on('value', snap => updateConnectionStatus(snap.val()));
-            
-            // Refresh counts when tab becomes visible
-            document.addEventListener('visibilitychange', () => {
-                if (document.visibilityState === 'visible') loadFirebaseVotes();
-            });
-        };
+        window.onload = async function() {
+    await loadQuestions();      // 1. Sync questions from Firebase
+    loadLocalData();            // 2. Load user selections
+    renderQuestions();          // 3. Build UI
+    loadFirebaseVotes();        // 4. Load vote counts
+    
+    // Connection status
+    db.ref('.info/connected').on('value', snap => updateConnectionStatus(snap.val()));
+    
+    // Refresh counts when tab becomes visible
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') loadFirebaseVotes();
+    });
+};
     </script>
 </body>
 </html>
