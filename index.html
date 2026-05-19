@@ -25,7 +25,7 @@
         }
         .bg-image {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-image: url('./images/background.jpg'); background-size: cover;
+            background-image: url('/images/background.jpg'); background-size: cover;
             background-position: center; opacity: 0.1; z-index: -1;
         }
         .bg-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
@@ -83,6 +83,11 @@
             padding: 5px 15px; border-radius: 20px; font-size: 0.85rem;
             font-weight: 600; margin-bottom: 15px;
         }
+        .question-hint {
+            text-align: center; color: var(--text-secondary); font-size: 0.9rem;
+            margin-top: 15px; padding: 8px 12px; background: var(--bg-secondary);
+            border-radius: 12px; border: 1px dashed var(--border);
+        }
         .friends-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
         .friend-card {
             background: var(--bg-secondary); border-radius: 16px; padding: 20px 15px;
@@ -91,6 +96,13 @@
         }
         .friend-card:hover { transform: translateY(-3px); border-color: var(--accent); box-shadow: 0 8px 25px rgba(255, 51, 102, 0.2); }
         .friend-card.voted { border-color: var(--success); background: rgba(0, 208, 132, 0.1); }
+        .friend-card.voted::after {
+            content: '✓'; position: absolute; top: 8px; right: 8px;
+            width: 24px; height: 24px; background: var(--success);
+            color: white; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.9rem; font-weight: 700;
+        }
         .friend-avatar {
             width: 60px; height: 60px; border-radius: 50%;
             background: linear-gradient(135deg, var(--accent), #ff6b6b);
@@ -178,21 +190,6 @@
         }
         #connectionStatus.connected { background: var(--success); color: #000; display: block; }
         #connectionStatus.disconnected { background: #ff6b6b; color: white; display: block; }
-        .friend-card.voted::after {
-            content: '✓'; position: absolute; top: 8px; right: 8px;
-            width: 24px; height: 24px; background: var(--success);
-            color: white; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 0.9rem; font-weight: 700;
-        }
-        .leader-item { display: flex; align-items: center; padding: 18px 20px; background: var(--bg-card); border-radius: 16px; margin-bottom: 12px; border: 1px solid var(--border); }
-        .leader-rank { font-size: 1.5rem; font-weight: 900; margin-right: 15px; width: 35px; text-align: center; }
-        .leader-rank.gold { color: #FFD700; } .leader-rank.silver { color: #C0C0C0; } .leader-rank.bronze { color: #CD7F32; }
-        .leader-avatar { width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), #ff6b6b); display: flex; align-items: center; justify-content: center; margin-right: 15px; overflow: hidden; flex-shrink: 0; }
-        .leader-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .leader-avatar .avatar-initial { font-size: 1.25rem; }
-        .leader-info { flex: 1; } .leader-name { font-weight: 600; margin-bottom: 4px; font-size: 1rem; }
-        .leader-votes { color: var(--text-secondary); font-size: 0.85rem; } .leader-score { font-size: 1.4rem; font-weight: 700; color: var(--accent); }
         
         /* 📊 Chart Styles */
         .chart-container { background: var(--bg-secondary); border-radius: 16px; padding: 20px; border: 1px solid var(--border); margin-bottom: 20px; }
@@ -203,6 +200,16 @@
         .legend-color { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
         .legend-value { margin-left: auto; font-weight: 600; color: var(--text-primary); }
         .empty-chart-msg { text-align: center; color: var(--text-secondary); padding: 40px 0; }
+        
+        /* Leaderboard */
+        .leader-item { display: flex; align-items: center; padding: 18px 20px; background: var(--bg-card); border-radius: 16px; margin-bottom: 12px; border: 1px solid var(--border); }
+        .leader-rank { font-size: 1.5rem; font-weight: 900; margin-right: 15px; width: 35px; text-align: center; }
+        .leader-rank.gold { color: #FFD700; } .leader-rank.silver { color: #C0C0C0; } .leader-rank.bronze { color: #CD7F32; }
+        .leader-avatar { width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), #ff6b6b); display: flex; align-items: center; justify-content: center; margin-right: 15px; overflow: hidden; flex-shrink: 0; }
+        .leader-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .leader-avatar .avatar-initial { font-size: 1.25rem; }
+        .leader-info { flex: 1; } .leader-name { font-weight: 600; margin-bottom: 4px; font-size: 1rem; }
+        .leader-votes { color: var(--text-secondary); font-size: 0.85rem; } .leader-score { font-size: 1.4rem; font-weight: 700; color: var(--accent); }
     </style>
 </head>
 <body>
@@ -300,14 +307,15 @@
         const db = firebase.database();
 
         // 📦 State Management
-        let userSelections = {}; // Local selections { "1": 5, "2": 12 }
-        let remoteCounts = {};   // Global counts from Firebase { 1: { 5: 3 }, 2: { 12: 1 } }
+        let userSelections = {}; // { "1": [5, 12], "2": [3] } - Array of friend IDs per question
+        let remoteCounts = {};   // Global counts from Firebase
         let isAdmin = false;
-        let questionCharts = {}; // Store Chart.js instances
+        let questionCharts = {};
         let firebaseInitialized = false;
 
         // 📋 Data
         const MEMBER_IMG_DIR = 'images/';
+        const MAX_SELECTIONS = 2; // 🔥 Allow 2 votes per question
         const friends = [
             { id: 1, name: 'Yesu', image: 'yesu.jpg' }, { id: 2, name: 'Tugsuu', image: 'tugsuu.jpg' },
             { id: 3, name: 'Turuu', image: 'turuu.jpg' }, { id: 4, name: 'Uulaa', image: 'uula.jpg' },
@@ -352,7 +360,15 @@
         function loadLocalData() {
             try {
                 const saved = localStorage.getItem(STORAGE_KEY);
-                if (saved) userSelections = JSON.parse(saved);
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    // Convert old format (single value) to new format (array)
+                    userSelections = {};
+                    Object.keys(parsed).forEach(key => {
+                        const val = parsed[key];
+                        userSelections[key] = Array.isArray(val) ? val : (val != null ? [val] : []);
+                    });
+                }
                 const savedQ = localStorage.getItem(QUESTIONS_KEY);
                 if (savedQ) questions = JSON.parse(savedQ);
             } catch (e) { console.warn('Local storage load error', e); }
@@ -370,7 +386,6 @@
                 if (data && Object.keys(data).length > 0) {
                     questions = Object.values(data).sort((a, b) => a.id - b.id);
                 } else {
-                    // First run: push defaults to Firebase
                     questions.forEach(q => db.ref(`questions/${q.id}`).set(q));
                 }
                 localStorage.setItem(QUESTIONS_KEY, JSON.stringify(questions));
@@ -431,7 +446,7 @@
         }
 
         function createQuestionCard(question, index) {
-            const selectedFid = userSelections[String(question.id)];
+            const selectedFids = userSelections[String(question.id)] || [];
             const card = document.createElement('div');
             card.className = 'question-card';
             card.innerHTML = `
@@ -442,12 +457,15 @@
                 </div>
                 <div class="friends-grid" id="friends-${question.id}">
                     ${friends.map(f => `
-                        <div class="friend-card ${selectedFid === f.id ? 'voted' : ''}" 
+                        <div class="friend-card ${selectedFids.includes(f.id) ? 'voted' : ''}" 
                              data-friend-id="${f.id}" onclick="handleVote(${question.id}, ${f.id}, event)">
                             <div class="friend-avatar">${memberAvatarHtml(f)}</div>
                             <div class="friend-name">${f.name}</div>
                         </div>
                     `).join('')}
+                </div>
+                <div class="question-hint">
+                    🔹 Сонголт: <span id="count-${question.id}">${selectedFids.length}</span> / ${MAX_SELECTIONS}
                 </div>
             `;
             return card;
@@ -467,10 +485,28 @@
             document.getElementById('submitVotesBtn').addEventListener('click', submitVotes);
         }
 
-        // 🗳️ Voting Logic
+        // 🗳️ Voting Logic (Multi-select: up to MAX_SELECTIONS)
         function handleVote(questionId, friendId, event) {
             createEmojiReaction(event.clientX, event.clientY, ['🔥','💯','😂','🎯','✨'][Math.floor(Math.random()*5)]);
-            userSelections[String(questionId)] = friendId;
+            
+            const key = String(questionId);
+            let selections = userSelections[key] || [];
+            
+            if (selections.includes(friendId)) {
+                // Deselect: remove from array
+                selections = selections.filter(id => id !== friendId);
+            } else if (selections.length < MAX_SELECTIONS) {
+                // Select: add to array (if under limit)
+                selections = [...selections, friendId];
+            } else {
+                // Limit reached - show feedback
+                const card = event.currentTarget;
+                card.style.animation = 'shake 0.3s ease';
+                setTimeout(() => card.style.animation = '', 300);
+                return; // Don't save
+            }
+            
+            userSelections[key] = selections;
             saveLocalData();
             updateCardVisuals(questionId);
         }
@@ -478,21 +514,29 @@
         function updateCardVisuals(questionId) {
             const container = document.getElementById(`friends-${questionId}`);
             if (!container) return;
-            const selectedFid = userSelections[String(questionId)];
+            const selectedFids = userSelections[String(questionId)] || [];
+            
+            // Update checkmarks
             container.querySelectorAll('.friend-card').forEach(card => {
-                card.classList.toggle('voted', Number(card.dataset.friendId) === selectedFid);
+                const fid = Number(card.dataset.friendId);
+                card.classList.toggle('voted', selectedFids.includes(fid));
             });
+            
+            // Update counter
+            const counter = document.getElementById(`count-${questionId}`);
+            if (counter) counter.textContent = selectedFids.length;
         }
 
-        // 📤 Submit to Firebase
+        // 📤 Submit to Firebase (batch increment for all selections)
         async function submitVotes() {
             const btn = document.getElementById('submitVotesBtn');
             const statusEl = document.getElementById('submitVotesStatus');
             if (!btn || !statusEl) return;
 
-            const answeredCount = Object.keys(userSelections).length;
+            // Count how many questions have at least 1 selection
+            const answeredCount = Object.values(userSelections).filter(arr => arr && arr.length > 0).length;
             if (answeredCount < questions.length) {
-                if (!confirm(`Та ${questions.length - answeredCount} асуултад хариулаагүй байна. Үргэлжлүүлэх үү?`)) return;
+                if (!confirm(`Та ${questions.length - answeredCount} асуултад сонголт хийгээгүй байна. Үргэлжлүүлэх үү?`)) return;
             }
 
             btn.disabled = true;
@@ -502,10 +546,10 @@
             try {
                 const updates = {};
                 questions.forEach(q => {
-                    const fid = userSelections[String(q.id)];
-                    if (fid != null) {
+                    const fids = userSelections[String(q.id)] || [];
+                    fids.forEach(fid => {
                         updates[`${q.id}_${fid}`] = firebase.database.ServerValue.increment(1);
-                    }
+                    });
                 });
 
                 if (Object.keys(updates).length > 0) {
@@ -515,7 +559,7 @@
                 statusEl.className = 'vote-submit-status ok';
                 statusEl.textContent = '✅ Амжилттай илгээгдлээ!';
                 
-                // Clear local after submit (optional, remove if you want persistent local)
+                // Optional: Clear local after submit
                 // userSelections = {}; saveLocalData(); renderQuestions();
             } catch (err) {
                 console.error('Submit failed', err);
@@ -646,7 +690,7 @@
                 const votes = {}; let total = 0;
                 friends.forEach(f => { const c = getVoteCount(q.id, f.id); if(c>0){votes[f.name]=c; total+=c;} });
                 const chart = questionCharts[q.id];
-                if (!chart && total > 0) renderQuestionCharts(); // Re-render if empty before
+                if (!chart && total > 0) renderQuestionCharts();
                 else if (chart) {
                     chart.data.labels = Object.keys(votes);
                     chart.data.datasets[0].data = Object.values(votes);
@@ -688,7 +732,7 @@
             renderQuestions();
             firebaseInitialized = true;
             
-            // Real-time listener
+            // Real-time listener for votes
             db.ref('votes').on('value', snap => {
                 const data = snap.val() || {};
                 questions.forEach(q => friends.forEach(f => {
