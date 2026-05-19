@@ -96,12 +96,14 @@
         }
         .friend-card:hover { transform: translateY(-3px); border-color: var(--accent); box-shadow: 0 8px 25px rgba(255, 51, 102, 0.2); }
         .friend-card.voted { border-color: var(--success); background: rgba(0, 208, 132, 0.1); }
-        .friend-card.voted::after {
-            content: '✓'; position: absolute; top: 8px; right: 8px;
-            width: 24px; height: 24px; background: var(--success);
-            color: white; border-radius: 50%;
+        .vote-order-badge {
+            position: absolute; top: -8px; left: -8px;
+            width: 26px; height: 26px;
+            background: var(--accent); color: white;
+            border-radius: 50%; font-size: 0.8rem; font-weight: 700;
             display: flex; align-items: center; justify-content: center;
-            font-size: 0.9rem; font-weight: 700;
+            border: 2px solid var(--bg-card); z-index: 2;
+            animation: popIn 0.3s ease;
         }
         .friend-avatar {
             width: 60px; height: 60px; border-radius: 50%;
@@ -162,6 +164,7 @@
         .reset-btn { background: #ff4444; width: 100%; margin-top: 10px; }
         .reset-btn:hover { background: #cc0000; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes popIn { from { opacity: 0; transform: scale(0); } to { opacity: 1; transform: scale(1); } }
         @keyframes bounce { 0%, 100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(-8px); } }
         @keyframes floatUp { 0% { opacity: 1; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(-100px) scale(1.5); } }
         @media (max-width: 768px) {
@@ -307,7 +310,7 @@
         const db = firebase.database();
 
         // 📦 State Management
-        let userSelections = {}; // { "1": [5, 12], "2": [3] } - Array of friend IDs per question
+        let userSelections = {}; // { "1": [5, 12], "2": [3] } - Array maintains selection order
         let remoteCounts = {};   // Global counts from Firebase
         let isAdmin = false;
         let questionCharts = {};
@@ -315,7 +318,7 @@
 
         // 📋 Data
         const MEMBER_IMG_DIR = 'images/';
-        const MAX_SELECTIONS = 2; // 🔥 Allow 2 votes per question
+        const MAX_SELECTIONS = 2; // 🔥 FIFO Queue: 1st, 2nd → 3rd replaces 1st
         const friends = [
             { id: 1, name: 'Yesu', image: 'yesu.jpg' }, { id: 2, name: 'Tugsuu', image: 'tugsuu.jpg' },
             { id: 3, name: 'Turuu', image: 'turuu.jpg' }, { id: 4, name: 'Uulaa', image: 'uula.jpg' },
@@ -362,7 +365,6 @@
                 const saved = localStorage.getItem(STORAGE_KEY);
                 if (saved) {
                     const parsed = JSON.parse(saved);
-                    // Convert old format (single value) to new format (array)
                     userSelections = {};
                     Object.keys(parsed).forEach(key => {
                         const val = parsed[key];
@@ -465,7 +467,8 @@
                     `).join('')}
                 </div>
                 <div class="question-hint">
-                    🔹 Сонголт: <span id="count-${question.id}">${selectedFids.length}</span> / ${MAX_SELECTIONS}
+                    🔹 Сонголт: <span id="count-${question.id}">${selectedFids.length}</span> / ${MAX_SELECTIONS} 
+                    <span style="font-size:0.8em; opacity:0.7;">(Шинэ нь хамгийн хуучныг солино)</span>
                 </div>
             `;
             return card;
@@ -485,7 +488,7 @@
             document.getElementById('submitVotesBtn').addEventListener('click', submitVotes);
         }
 
-        // 🗳️ Voting Logic (Multi-select: up to MAX_SELECTIONS)
+        // 🗳️ FIFO Voting Logic
         function handleVote(questionId, friendId, event) {
             createEmojiReaction(event.clientX, event.clientY, ['🔥','💯','😂','🎯','✨'][Math.floor(Math.random()*5)]);
             
@@ -493,17 +496,14 @@
             let selections = userSelections[key] || [];
             
             if (selections.includes(friendId)) {
-                // Deselect: remove from array
+                // Already selected → remove them
                 selections = selections.filter(id => id !== friendId);
-            } else if (selections.length < MAX_SELECTIONS) {
-                // Select: add to array (if under limit)
-                selections = [...selections, friendId];
             } else {
-                // Limit reached - show feedback
-                const card = event.currentTarget;
-                card.style.animation = 'shake 0.3s ease';
-                setTimeout(() => card.style.animation = '', 300);
-                return; // Don't save
+                // Not selected → add to queue
+                if (selections.length >= MAX_SELECTIONS) {
+                    selections.shift(); // 🔥 Remove 1st (oldest)
+                }
+                selections.push(friendId); // 🔥 Add new as latest
             }
             
             userSelections[key] = selections;
@@ -514,26 +514,38 @@
         function updateCardVisuals(questionId) {
             const container = document.getElementById(`friends-${questionId}`);
             if (!container) return;
-            const selectedFids = userSelections[String(questionId)] || [];
+            const selections = userSelections[String(questionId)] || [];
             
-            // Update checkmarks
             container.querySelectorAll('.friend-card').forEach(card => {
                 const fid = Number(card.dataset.friendId);
-                card.classList.toggle('voted', selectedFids.includes(fid));
+                const idx = selections.indexOf(fid);
+                
+                if (idx !== -1) {
+                    card.classList.add('voted');
+                    let badge = card.querySelector('.vote-order-badge');
+                    if (!badge) {
+                        badge = document.createElement('div');
+                        badge.className = 'vote-order-badge';
+                        card.appendChild(badge);
+                    }
+                    badge.textContent = idx === 0 ? '1' : '2';
+                } else {
+                    card.classList.remove('voted');
+                    const badge = card.querySelector('.vote-order-badge');
+                    if (badge) badge.remove();
+                }
             });
             
-            // Update counter
             const counter = document.getElementById(`count-${questionId}`);
-            if (counter) counter.textContent = selectedFids.length;
+            if (counter) counter.textContent = selections.length;
         }
 
-        // 📤 Submit to Firebase (batch increment for all selections)
+        // 📤 Submit to Firebase
         async function submitVotes() {
             const btn = document.getElementById('submitVotesBtn');
             const statusEl = document.getElementById('submitVotesStatus');
             if (!btn || !statusEl) return;
 
-            // Count how many questions have at least 1 selection
             const answeredCount = Object.values(userSelections).filter(arr => arr && arr.length > 0).length;
             if (answeredCount < questions.length) {
                 if (!confirm(`Та ${questions.length - answeredCount} асуултад сонголт хийгээгүй байна. Үргэлжлүүлэх үү?`)) return;
@@ -558,9 +570,6 @@
 
                 statusEl.className = 'vote-submit-status ok';
                 statusEl.textContent = '✅ Амжилттай илгээгдлээ!';
-                
-                // Optional: Clear local after submit
-                // userSelections = {}; saveLocalData(); renderQuestions();
             } catch (err) {
                 console.error('Submit failed', err);
                 statusEl.className = 'vote-submit-status err';
@@ -604,7 +613,6 @@
             document.getElementById('totalVotes').textContent = total;
             document.getElementById('totalQuestions').textContent = questions.length;
             
-            // Leaderboard
             const container = document.getElementById('adminLeaderboard');
             container.innerHTML = '';
             const scores = friends.map(f => ({
@@ -621,7 +629,6 @@
                 container.appendChild(item);
             });
 
-            // Stats List
             const list = document.getElementById('voteList'); list.innerHTML = '';
             questions.forEach(q => {
                 let top = '-', max = 0;
@@ -629,7 +636,6 @@
                 list.innerHTML += `<div class="vote-item"><div><div class="vote-question">${q.emoji} ${q.text}</div><div class="vote-stats">${max} votes - Top: ${top}</div></div></div>`;
             });
 
-            // Charts
             renderQuestionCharts();
         }
 
@@ -732,7 +738,6 @@
             renderQuestions();
             firebaseInitialized = true;
             
-            // Real-time listener for votes
             db.ref('votes').on('value', snap => {
                 const data = snap.val() || {};
                 questions.forEach(q => friends.forEach(f => {
